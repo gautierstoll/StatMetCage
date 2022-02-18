@@ -26,12 +26,10 @@ setMethod(f="initialize",
                                 time = "Time",
                                 animal = "Animal No.",
                                 obs = "VO2(3)",
-                                annotation = NULL,
+                                annotation = character(0),
                                 annotGroups = c("Group")){
             if (class(rawData) != "RawMetaboData"){stop("Input is not RawMetaboData")}
             rawCol = c(date,time,animal,obs,norm)
-            print(rawCol)
-            print(names(rawData@data))
             if (length(setdiff(rawCol,names(rawData@data))) > 0){stop("Cannot find ",setdiff(rawCol,names(rawData@data)))}
             dataDF = rawData@data[c(animal,obs)]
             dataDF$MyTime =  lubridate::dmy_hm(paste(unlist(rawData@data[date]),unlist(rawData@data[time]),sep=" "))
@@ -41,7 +39,7 @@ setMethod(f="initialize",
             dataDF$Sun = c("day","night")[as.integer((dataDF$RelDay+.125)*2)%%2+1] ## same as activity
             dataDF$OscillActivity = sin((dataDF$RelDay-0.3125)/.5*pi)
             dataDF$SqRelDay = dataDF$RelDay^2
-            if (!is.null(annotation)){
+            if (length(annotation)>0){
               if (!is.element("Animal",names(annotation))){stop("No Animal column in annotation")}
               if (!is.element("Date",names(annotation))){stop("No Date column in annotation")}
               if (!is.element("Time",names(annotation))){stop("No Time column in annotation")}
