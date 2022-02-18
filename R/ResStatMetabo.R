@@ -87,7 +87,7 @@ setGeneric(
   name = "metaboPlot",
   def = function(x,type){standardGeneric("metaboPlot")}
 )
-setMethod(f="plot",
+setMethod(f="metaboPlot",
           signature = "ResStatMetabo",
           definition = function(x,type="data"){
             xMinMax = c(min(x@lmeRes$data$RelDay),max(x@lmeRes$data$RelDay))
