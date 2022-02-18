@@ -87,6 +87,8 @@ setGeneric(
   name = "metaboPlot",
   def = function(x,type){standardGeneric("metaboPlot")}
 )
+
+#' @export
 setMethod(f="metaboPlot",
           signature = "ResStatMetabo",
           definition = function(x,type="data"){
@@ -126,6 +128,8 @@ setGeneric(
   name = "predictStatMetabo",
   def = function(object,tPoint,group=""){standardGeneric("predictStatMetabo")}
 )
+
+#' @export
 setMethod(f="predictStatMetabo",
           signature = "ResStatMetabo",
           definition = function(object,tPoint,group=""){
