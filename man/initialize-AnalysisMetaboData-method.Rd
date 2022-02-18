@@ -11,7 +11,7 @@
   time = "Time",
   animal = "Animal No.",
   obs = "VO2(3)",
-  annotation = NULL,
+  annotation = character(0),
   annotGroups = c("Group")
 )
 }
