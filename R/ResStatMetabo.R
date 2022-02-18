@@ -83,10 +83,13 @@ setMethod(f="initialize",
             return(.Object)
           })
 
-
+setGeneric(
+  name = "metaboPlot",
+  def = function(x,type){standardGeneric("metaboPlot")}
+)
 setMethod(f="plot",
           signature = "ResStatMetabo",
-          definition = function(x,y,type="data"){
+          definition = function(x,type="data"){
             xMinMax = c(min(x@lmeRes$data$RelDay),max(x@lmeRes$data$RelDay))
             yMinMax = c(min(x@lmeRes$data$Observation),
                         max(x@lmeRes$data$Observation)*(1+.05*length(unique(x@lmeRes$data$Group))))
