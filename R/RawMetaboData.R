@@ -1,6 +1,7 @@
 #' Class of raw data parsing
 #' @slot data the data frame of raw data
 #' @slot header the rest of information contained in raw data file
+#' @export
 setClass(Class = "RawMetaboData",
          representation = representation(
            data = "data.frame",
@@ -14,9 +15,10 @@ setClass(Class = "RawMetaboData",
          }
 )
 #' Constructor of class RawMetaboData
-#' 
+#'
 #' @param fileName .csv file containing raw data
-#' 
+#' @export
+#'
 setMethod(f="initialize",
           signature = "RawMetaboData",
           definition = function(.Object,fileName){

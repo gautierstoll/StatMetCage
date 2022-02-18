@@ -4,12 +4,14 @@ NULL
 
 setOldClass("summary.lme")
 
+
 #' @slot data data used for analysis
 #' @slot observation name of output extracted for AnalysisMetaboData
 #' @slot norm name of data in AnalysisMetaboData used for normalization
 #' @slot group name of data in AnalysisMetaboData used for experimental annotation
 #' @slot model type time model (constant, linear, quadratic)
 #' @slot lmeRes result of mixed linear model
+#' @export
 #'
 setClass("ResStatMetabo",
          representation = representation(
@@ -29,6 +31,7 @@ setClass("ResStatMetabo",
 #' @param group column of anMetData used experimental annotation
 #' @param control name of control in experimental annotation
 #' @param statLog if TRUE, log10 is applied to observation (after normalization) for statistical analysis
+#' @export
 setMethod(f="initialize",
           signature = "ResStatMetabo",
           definition = function(.Object,anMetData,observation,model = "quadratic",norm = NULL,group,control = "control",statLog=F){
@@ -79,6 +82,8 @@ setMethod(f="initialize",
 ##            .Object@data = dataDF data is already in lmeRes
             return(.Object)
           })
+
+
 setMethod(f="plot",
           signature = "ResStatMetabo",
           definition = function(x,y,type="data"){

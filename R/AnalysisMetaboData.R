@@ -3,7 +3,8 @@ NULL
 
 #' Class of data for statistical analysis
 #' @slot data data frame that contains animal, specified observations, absolute time (my time), floating point day (RelDay), day activity (Sun), sine function based on day activity, squared floating point day (SqRelDay)
-#' @slot animal name of animal column  
+#' @slot animal name of animal column
+#' @export
 setClass("AnalysisMetaboData",
          representation = representation(
            data = "data.frame",
@@ -16,6 +17,7 @@ setClass("AnalysisMetaboData",
 #' @param animal name of animal column
 #' @param obs list of observation to be extracted
 #' @param annotation data frame of annotation to be added to each animals, must contains an Animal column
+#' @export
 setMethod(f="initialize",
           signature = "AnalysisMetaboData",
           definition = function(.Object,
@@ -31,7 +33,7 @@ setMethod(f="initialize",
             if (length(setdiff(rawCol,names(rawData@data))) > 0){stop("Cannot find ",setdiff(rawCol,names(rawData@data)))}
             dataDF = rawData@data[c(animal,obs)]
             dataDF$MyTime =  lubridate::dmy_hm(paste(unlist(rawData@data[date]),unlist(rawData@data[time]),sep=" "))
-            
+
             dataDF$RelDay = unlist(by(dataDF,dataDF[animal],
                                        function(SData){(unclass(SData$MyTime) - unclass(SData$MyTime)[1])/(24*3600)}))
             dataDF$Sun = c("day","night")[as.integer((dataDF$RelDay+.125)*2)%%2+1] ## same as activity
@@ -43,7 +45,7 @@ setMethod(f="initialize",
               if (!is.element("Time",names(annotation))){stop("No Time column in annotation")}
               if (!Reduce(f = "&",is.element(annotGroups,names(annotation)))){
                 stop("Mission group annotation columns in annotation")}
-              if (length(intersect(unique(unlist(dataDF[[animal]])),unique(annotation$Animal))) < 
+              if (length(intersect(unique(unlist(dataDF[[animal]])),unique(annotation$Animal))) <
                   length(unique(unlist(dataDF[[animal]])))) {stop("Missing animals in annotation")}
              .Object@data = do.call(rbind,by(dataDF,dataDF[[animal]],function(subDF){
                subAnimal = unique(unlist(subDF[[animal]]))
