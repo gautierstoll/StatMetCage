@@ -1,15 +1,16 @@
 #' @include AnalysisMetaboData.R
 NULL
 
-#' Class for statistical results for AnalysisMetaboData
+
+setOldClass("summary.lme")
+
 #' @slot data data used for analysis
 #' @slot observation name of output extracted for AnalysisMetaboData
 #' @slot norm name of data in AnalysisMetaboData used for normalization
 #' @slot group name of data in AnalysisMetaboData used for experimental annotation
 #' @slot model type time model (constant, linear, quadratic)
 #' @slot lmeRes result of mixed linear model
-#' 
-setOldClass("summary.lme")
+#'
 setClass("ResStatMetabo",
          representation = representation(
 ##           data = "data.frame", data is already in lmeRes
@@ -27,7 +28,7 @@ setClass("ResStatMetabo",
 #' @param norm column of anMetData used for normalization (if NULL, no normalization is applied)
 #' @param group column of anMetData used experimental annotation
 #' @param control name of control in experimental annotation
-#' @param statLog if TRUE, log10 is applied to observation (after normalization) for statistical analysis 
+#' @param statLog if TRUE, log10 is applied to observation (after normalization) for statistical analysis
 setMethod(f="initialize",
           signature = "ResStatMetabo",
           definition = function(.Object,anMetData,observation,model = "quadratic",norm = NULL,group,control = "control",statLog=F){
@@ -74,7 +75,7 @@ setMethod(f="initialize",
             else {stop("Model not found")}
             .Object@lmeRes = lmeRes
             .Object@statLog = statLog
-            
+
 ##            .Object@data = dataDF data is already in lmeRes
             return(.Object)
           })
@@ -91,7 +92,7 @@ setMethod(f="plot",
                    x@lmeRes$data$Observation[which(x@lmeRes$data$Animal == unique(x@lmeRes$data$Animal)[1])],
                    type = "l",lwd = .5,col = as.numeric(x@lmeRes$data$Group)[1],
                    ylim = yMinMax,xlim=xMinMax,xlab = "Relative day",ylab = x@observation)
-              
+
               for (tmpAnimal in unique(x@lmeRes$data$Animal)[-1]){
                 points(x@lmeRes$data$RelDay[which(x@lmeRes$data$Animal == tmpAnimal)],
                        x@lmeRes$data$Observation[which(x@lmeRes$data$Animal == tmpAnimal)],
@@ -121,7 +122,7 @@ setMethod(f="predictStatMetabo",
           signature = "ResStatMetabo",
           definition = function(object,tPoint,group=""){
            fCoeff = object@lmeRes$coefficients$fixed
-           predRes = fCoeff[["(Intercept)"]] +  fCoeff[["OscillActivity"]]*sin((tPoint-0.3125)/.5*pi) 
+           predRes = fCoeff[["(Intercept)"]] +  fCoeff[["OscillActivity"]]*sin((tPoint-0.3125)/.5*pi)
            if (is.element("RelDay",names(fCoeff))){predRes = predRes + fCoeff[["RelDay"]]*tPoint}
            if (is.element("SqRelDay",names(fCoeff))){predRes = predRes + fCoeff[["SqRelDay"]]*tPoint*tPoint}
            if (is.element(paste(object@group,group,sep=""),names(fCoeff))){predRes = predRes + fCoeff[[paste(object@group,group,sep="")]]}
