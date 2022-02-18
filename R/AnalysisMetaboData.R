@@ -30,6 +30,8 @@ setMethod(f="initialize",
                                 annotGroups = c("Group")){
             if (class(rawData) != "RawMetaboData"){stop("Input is not RawMetaboData")}
             rawCol = c(date,time,animal,obs,norm)
+            print(rawCol)
+            print(names(rawData@data))
             if (length(setdiff(rawCol,names(rawData@data))) > 0){stop("Cannot find ",setdiff(rawCol,names(rawData@data)))}
             dataDF = rawData@data[c(animal,obs)]
             dataDF$MyTime =  lubridate::dmy_hm(paste(unlist(rawData@data[date]),unlist(rawData@data[time]),sep=" "))
