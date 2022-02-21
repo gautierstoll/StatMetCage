@@ -18,3 +18,4 @@ Collate:
     'RawMetaboData.R'
     'AnalysisMetaboData.R'
     'ResStatMetabo.R'
+    'StatShiny.R'

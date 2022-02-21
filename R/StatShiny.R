@@ -1,3 +1,5 @@
+#' shiny application
+#' @export
 StatShiny = function(){
   appDir <- system.file("ShinyApp", package = "StatMetCage")
   if (appDir == "") {
