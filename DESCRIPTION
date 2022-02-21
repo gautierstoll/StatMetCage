@@ -1,15 +1,18 @@
 Package: StatMetCage
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Statistical Analysis of Metabolic Cages
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Gautier Stoll
+Maintainer: Gautier Stoll <gautier.stoll@gmail.com>
+Description: Data processing, statistical analysis and plotting of data produced by metabolic cages
+Depends: R (>= 3.6.0)
+Imports:
+  lubridate,
+  nlme
+License: GPL (>=2)
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Collate: 
     'RawMetaboData.R'
     'AnalysisMetaboData.R'

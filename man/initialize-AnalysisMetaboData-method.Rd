@@ -18,15 +18,17 @@
 \arguments{
 \item{rawData}{S4 object of RawMetaboData}
 
-\item{date}{name of date column}
+\item{date}{name of date column in raw data}
 
-\item{time}{name of time column}
+\item{time}{name of time column in raw data}
 
-\item{animal}{name of animal column}
+\item{animal}{name of animal column in raw data}
 
-\item{obs}{list of observation to be extracted}
+\item{obs}{list of observation to be extracted in raw data}
 
-\item{annotation}{data frame of annotation to be added to each animals, must contains an Animal column}
+\item{annotation}{data frame of annotation to be added to each animals, must contain the column Animal, Time, Date}
+
+\item{annotGroups}{list of qualitative annotation column. Other columns will be treated as numeric with a time dependence evaluated by spline.}
 }
 \description{
 Constructor of AnalysisMetaboData

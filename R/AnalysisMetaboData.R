@@ -12,11 +12,12 @@ setClass("AnalysisMetaboData",
          ))
 #' Constructor of AnalysisMetaboData
 #' @param rawData S4 object of RawMetaboData
-#' @param date name of date column
-#' @param time name of time column
-#' @param animal name of animal column
-#' @param obs list of observation to be extracted
-#' @param annotation data frame of annotation to be added to each animals, must contains an Animal column
+#' @param date name of date column in raw data
+#' @param time name of time column in raw data
+#' @param animal name of animal column in raw data
+#' @param obs list of observation to be extracted in raw data
+#' @param annotation data frame of annotation to be added to each animals, must contain the column Animal, Time, Date
+#' @param annotGroups list of qualitative annotation column. Other columns will be treated as numeric with a time dependence evaluated by spline.
 #' @export
 setMethod(f="initialize",
           signature = "AnalysisMetaboData",

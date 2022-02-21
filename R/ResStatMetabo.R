@@ -88,6 +88,9 @@ setGeneric(
   def = function(x,type){standardGeneric("metaboPlot")}
 )
 
+#' Plot time dependant metabolic data
+#' @param x ResStatMetabo S4 object
+#' @param type type of plot: data, data.model or model
 #' @export
 setMethod(f="metaboPlot",
           signature = "ResStatMetabo",
