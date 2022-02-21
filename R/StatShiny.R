@@ -1,10 +1,9 @@
 #' shiny application
 #' @export
 StatShiny = function(){
-  appDir <- system.file("ShinyApp", package = "StatMetCage")
+  appDir <- system.file("shiny-examples", package = "StatMetCage")
   if (appDir == "") {
-    stop("Could not find ShinyApp sub directory", call. = FALSE)
+    stop("Could not find shiny-exmaples sub directory", call. = FALSE)
   }
-  
   shiny::runApp(appDir, display.mode = "normal")
 }
