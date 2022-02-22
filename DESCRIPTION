@@ -9,7 +9,10 @@ Depends: R (>= 3.6.0)
 Imports:
   lubridate,
   nlme,
-  shiny
+  shiny,
+  shinyFiles,
+  tools,
+  fs
 License: GPL (>=2)
 Encoding: UTF-8
 LazyData: true
