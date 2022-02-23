@@ -1,4 +1,4 @@
-CytoSOM: a package for easy use of FlowSOM applied to cytometry data
+StatMetCage: a package for statistical analysis of metabolic cage data.
 ====================================================================
 Introduction
 ==============
