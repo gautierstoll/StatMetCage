@@ -61,7 +61,7 @@ The results can be plotted:
 ```R
 metaboPlot(ResStatMeta,type = "data.model")
 ```
-and statistical results can be exctracted:
+and statistical results can be extracted:
 ```R
 ResStatMeta@lmeRes$tTable
 ```
