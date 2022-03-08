@@ -20,9 +20,9 @@ ui <- fluidPage(
   )
 )
 
-
 # Define server logic 
 server <- function(input, output,session) {
+  MetaboContainer = reactiveValues()
   noObservations = c("Date","Time","Animal No.","Box","Ref.SFlow","Ref.O2","Ref.CO2","Flow","S.Flow",
                      "Temp","O2","CO2","dO2","dCO2","VO2(1)","VO2(2)","VCO2(1)","VCO2(2)","H(1)","H(2)")
   print(paste("no",noObservations))
@@ -33,7 +33,7 @@ server <- function(input, output,session) {
     if (is.integer(input$rawFile)) {c(" ")} else {
       MetaboContainer$RawData = new("RawMetaboData",fileName = parseFilePaths(volumes, input$rawFile)$datapath)
       MetaboContainer$OutDir=unlist(gsub(parseFilePaths(volumes, input$rawFile)$name,"",parseFilePaths(volumes, input$rawFile)$datapath,fixed=T))
-      print(MetaboContainer$OutDir)
+      print(paste("Results stored at",MetaboContainer$OutDir))
       testCol = which(is.element(c("Date","Time","Animal No."),names(MetaboContainer$RawData@data)))
       if (length(testCol) < 3) {MetaboContainer$RawData = NULL;c("Missing elements",c("Date","Time","Animal No.")[-testCol])} else
       {names(MetaboContainer$RawData@data)[!is.element(names(MetaboContainer$RawData@data),c("Date","Time","Animal No."))]}}
@@ -57,17 +57,23 @@ server <- function(input, output,session) {
             annotation =MetaboContainer$Annot,
             annotGroups = names(which(!sapply(MetaboContainer$Annot[!is.element(names(MetaboContainer$Annot),c("Animal","Date","Time"))],
                                               function(x){is.numeric(x)}))))
-      print("Analysis created")
-      print(names(MetaboContainer$RawData@data))
-      print(noObservations)
-      for (obs in names(setdiff(names(MetaboContainer$RawData@data),noObservations))) {
+      PValTable = list()
+      PValTableNames = c()
+      for (obs in setdiff(names(MetaboContainer$RawData@data),noObservations)) {
         print(paste("start analysis of ",obs,sep = ""))
-        ResStat = new("ResStatMetabo",anMetData = MetaboContainer$Analysis,observation = obs,model = "quadratic",group = "Group")
-        pdf(file = paste(MetaboContainer$OutDir,"obs.pdf",sep = ""))
+        ResStat = tryCatch({new("ResStatMetabo",anMetData = MetaboContainer$Analysis,observation = obs,model = "quadratic",group = "Group")},
+                           error = function(cond){message(cond);message("file stat test");return(NA)},
+                           warning = function(cond){message(cond);message("file stat test");return(NA)})
+        if (is(ResStat,"ResStatMetabo")){
+        PValTable = rbind(PValTable,ResStat@lmeRes$tTable[2:(length(ResStat@lmeRes$tTable[,1])-3),5])
+        PValTableNames = c(PValTableNames,obs)
+        pdf(file = paste(MetaboContainer$OutDir,obs,".pdf",sep = ""))
         metaboPlot(ResStat,type="data.model")
             dev.off()
-            print("pdf created")
-      }
+            }
+        }
+      row.names(PValTable) = PValTableNames
+      write.csv(PValTable,file = paste(MetaboContainer$OutDir,"PValTable.csv",sep = ""))
     }
   })
 }
