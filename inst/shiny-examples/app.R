@@ -62,8 +62,8 @@ server <- function(input, output,session) {
       for (obs in setdiff(names(MetaboContainer$RawData@data),noObservations)) {
         print(paste("start analysis of ",obs,sep = ""))
         ResStat = tryCatch({new("ResStatMetabo",anMetData = MetaboContainer$Analysis,observation = obs,model = "quadratic",group = "Group")},
-                           error = function(cond){message(cond);message("file stat test");return(NA)},
-                           warning = function(cond){message(cond);message("file stat test");return(NA)})
+                           error = function(cond){message(paste(cond,"for",obs))},
+                           warning = function(cond){message(paste(cond,"for",obs))})
         if (is(ResStat,"ResStatMetabo")){
         PValTable = rbind(PValTable,ResStat@lmeRes$tTable[2:(length(ResStat@lmeRes$tTable[,1])-3),5])
         PValTableNames = c(PValTableNames,obs)

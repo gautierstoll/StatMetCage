@@ -52,7 +52,7 @@ RawMetaData = new("RawMetaboData",fileName = "myData.csv")
 ```R
 AnalysisMeta = new("AnalysisMetaboData",rawData = RawMetaData,obs = c("VO2","VCO2"),annotation = myAnnotation,annotGroups = c("Treatment","Mutation"))
 ```
-4. Create an statistical result object:
+4. Create a statistical result object:
 ```R
 ResStatMeta = new("ResStatMetabo",anMetData = AnalysisMeta,observation = "VO2",model = "quadratic",group = "Treatment")
 ```
@@ -65,5 +65,23 @@ and statistical results can be extracted:
 ```R
 ResStatMeta@lmeRes$tTable
 ```
+
+## Shiny application
+
+There s a shiny application for handling StatMetPackage. After activating the package
+```R
+library(StatMetCage)
 ```
+launch the shiny application:
+```R
+StatShiny()
+```
+1. Click on "Raw Data File" to download the raw data (a `.csv` file)
+
+2. Click on "Annotation File" to downlad the annotation file. It needs to be a `.xlsx` file that must contain the columns "Date","Time","Animal","Group". Each line describes an animal. The "Group" column must have some lines with the name "Control".
+
+3. Click on "Run Analysis". 
+
+The application produces a table of p-values, regarding the effect of each group compared to control. The application also produces a `.pdf` for each analyzed values.
+
 
