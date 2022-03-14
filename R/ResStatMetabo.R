@@ -1,10 +1,9 @@
 #' @include AnalysisMetaboData.R
 NULL
-
-
 setOldClass("summary.lme")
+NULL
 
-
+#' Class for results of statistical analysis
 #' @slot data data used for analysis
 #' @slot observation name of output extracted for AnalysisMetaboData
 #' @slot norm name of data in AnalysisMetaboData used for normalization
@@ -12,7 +11,6 @@ setOldClass("summary.lme")
 #' @slot model type time model (constant, linear, quadratic)
 #' @slot lmeRes result of mixed linear model
 #' @export
-#'
 setClass("ResStatMetabo",
          representation = representation(
 ##           data = "data.frame", data is already in lmeRes
