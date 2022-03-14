@@ -40,6 +40,17 @@ install.packages("readxl")
 ```
 
 ## HowTo
+
+Useful helps:
+```R
+? `RawMetaboData-class`
+? `initialize,RawMetaboData-method`
+? `AnalysisMetaboData-class`
+? `initialize,AnalysisMetaboData-method`
+? `ResStatMetabo-class`
+? `initialize,ResStatMetabo-method`
+? `metaboPlot,ResStatMetabo-method`
+```
 1. Activate the package:
 ```R
 library(StatMetCage)
@@ -48,6 +59,7 @@ library(StatMetCage)
 ```R
 RawMetaData = new("RawMetaboData",fileName = "myData.csv")
 ```
+See (`)
 3. Create an analysis object that contains the observation of interests(eg "VO2" and "VCO2""). An annotation data frame can be included (eg `myAnnotation`) that must contains "Animal", "Date" and "Time" column, with qualitative annotation (eg "Treatment", "Mutation"), the other columns will be treated as numeric data, with a time dependence evaluated by spline:
 ```R
 AnalysisMeta = new("AnalysisMetaboData",rawData = RawMetaData,obs = c("VO2","VCO2"),annotation = myAnnotation,annotGroups = c("Treatment","Mutation"))
