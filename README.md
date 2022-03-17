@@ -9,7 +9,7 @@ StatMetCage performs statistical analysis of data produced by metabolic cages.
 StatMetCage is installed from Github:
 ```R
 install.packages("devtools")
-devtools::install_git("https://github.com/gautierstoll/StatMetCage")
+devtools::install_github("https://github.com/gautierstoll/StatMetCage")
 ```
 
 Some dependent packages may not be available directly. They have to be installed first:
@@ -59,7 +59,7 @@ library(StatMetCage)
 ```R
 RawMetaData = new("RawMetaboData",fileName = "myData.csv")
 ```
-See (`)
+
 3. Create an analysis object that contains the observation of interests(eg "VO2" and "VCO2""). An annotation data frame can be included (eg `myAnnotation`) that must contains "Animal", "Date" and "Time" column, with qualitative annotation (eg "Treatment", "Mutation"), the other columns will be treated as numeric data, with a time dependence evaluated by spline:
 ```R
 AnalysisMeta = new("AnalysisMetaboData",rawData = RawMetaData,obs = c("VO2","VCO2"),annotation = myAnnotation,annotGroups = c("Treatment","Mutation"))
@@ -80,17 +80,19 @@ ResStatMeta@lmeRes$tTable
 
 ## Shiny application
 
-There s a shiny application for handling StatMetPackage. After activating the package
+There s a shiny application for handling StatMetPackage. 
+
+After activating the package
 ```R
 library(StatMetCage)
 ```
-launch the shiny application:
+Launch the shiny application:
 ```R
 StatShiny()
 ```
 1. Click on "Raw Data File" to download the raw data (a `.csv` file)
 
-2. Click on "Annotation File" to downlad the annotation file. It needs to be a `.xlsx` file that must contain the columns "Date","Time","Animal","Group". Each line describes an animal. The "Group" column must have some lines with the name "Control".
+2. Click on "Annotation File" to download the annotation file. It needs to be a `.xlsx` file that must contain the columns "Date","Time","Animal","Group". Each line describes an animal. The "Group" column must have some lines with the name "Control".
 
 3. Click on "Run Analysis". 
 
