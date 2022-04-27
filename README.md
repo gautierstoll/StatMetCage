@@ -92,9 +92,9 @@ StatShiny()
 ```
 1. Click on "Raw Data File" to download the raw data (a `.csv` file)
 
-2. Click on "Annotation File" to download the annotation file. It needs to be a `.xlsx` file that must contain the columns "Date","Time","Animal","Group". Each line describes an animal. The "Group" column must have some lines with the name "Control".
+2. Click on "Annotation File" to download the annotation file. It needs to be a `.xlsx` file that must contain the columns "Date","Time","Animal","Group". Each line describes an animal. The "Group" column must have some lines with the name "control".
 
-3. Click on "Run Analysis". 
+3. Click on "Run Analysis". Every animal in the Raw Data File must have at least one corresponding line in the Annotation File
 
 The application produces a table of p-values, regarding the effect of each group compared to control. The application also produces a `.pdf` for each analyzed values.
 
