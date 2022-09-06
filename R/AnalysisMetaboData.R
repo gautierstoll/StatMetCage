@@ -32,11 +32,12 @@ setMethod(f="initialize",
             if (class(rawData) != "RawMetaboData"){stop("Input is not RawMetaboData")}
             rawCol = c(date,time,animal,obs)
             if (length(setdiff(rawCol,names(rawData@data))) > 0){stop("Cannot find ",setdiff(rawCol,names(rawData@data)))}
-            dataDF = rawData@data[c(animal,obs)]
-            dataDF$MyTime =  lubridate::dmy_hm(paste(unlist(rawData@data[date]),unlist(rawData@data[time]),sep=" "))
-
-            dataDF$RelDay = unlist(by(dataDF,dataDF[animal],
-                                       function(SData){(unclass(SData$MyTime) - unclass(SData$MyTime)[1])/(24*3600)}))
+            rawData4A = rawData@data[order(rawData@data[[animal]]),]
+            dataDF = rawData4A[c(animal,obs)]
+            dataDF$MyTime =  lubridate::dmy_hm(paste(unlist(rawData4A[date]),unlist(rawData4A[time]),sep=" "))
+            
+            dataDF$RelDay = unlist(by(dataDF,dataDF[[animal]], ## double [  create a vector
+                                       function(SData){return((unclass(SData$MyTime) - unclass(SData$MyTime)[1])/(24*3600))}))
             dataDF$Sun = c("day","night")[as.integer((dataDF$RelDay+.125)*2)%%2+1] ## same as activity
             dataDF$OscillActivity = sin((dataDF$RelDay-0.3125)/.5*pi)
             dataDF$SqRelDay = dataDF$RelDay^2
@@ -62,6 +63,7 @@ setMethod(f="initialize",
                }
                names(subAnnot4DF) = lapply(names(subAnnot4DF),function(name){
                  if (is.element(name,names(subDF))) {return(paste(name,"annot",sep = "_"))}else(return(name))})
+    
                return(cbind(subDF,subAnnot4DF))}))}
              else {.Object@data = dataDF}
             .Object@animal = animal
