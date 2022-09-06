@@ -44,7 +44,7 @@ setMethod(f="initialize",
             dataDF$Group = factor(dataDF$Group,levels = c(control,setdiff(unique(dataDF$Group),control)))
             if(!is.null(norm)) {
               if (!is.element(norm,names(anMetaData@data))){stop("Normalization not found")}
-              dataDF$Observation = dataDF$Observation/unlist(anMetaData@data[norm])
+              dataDF$Observation = dataDF$Observation/as.numeric(unlist(anMetaData@data[norm]))
             }
             if (is.null(norm)){.Object@norm = character(0)}else{.Object@norm = norm}
             .Object@model = model
