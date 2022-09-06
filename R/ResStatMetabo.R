@@ -52,25 +52,31 @@ setMethod(f="initialize",
             if (model == "linear"){
               if(statLog) {
                 dataDF$LogTObservation = log10(dataDF$Observation)
-                lmeRes = summary(nlme::lme(LogTObservation ~ Group+RelDay + OscillActivity,random = ~ 1|Animal,data = dataDF))
+                lmeRes = summary(nlme::lme(LogTObservation ~ Group+RelDay + OscillActivity,random = ~ 1|Animal,
+                                           data = dataDF[which(!is.na(dataDF$Observation)),]))
               } else {
-              lmeRes = summary(nlme::lme(Observation ~ Group+RelDay + OscillActivity,random = ~ 1|Animal,data = dataDF))
+              lmeRes = summary(nlme::lme(Observation ~ Group+RelDay + OscillActivity,random = ~ 1|Animal,
+                                         data = dataDF[which(!is.na(dataDF$Observation)),]))
               }
             }
             else if (model == "quadratic"){
               if(statLog) {
                 dataDF$LogTObservation = log10(dataDF$Observation)
-                lmeRes = summary(nlme::lme(LogTObservation ~ Group+RelDay+ SqRelDay+ OscillActivity,random = ~ 1|Animal,data = dataDF))
+                lmeRes = summary(nlme::lme(LogTObservation ~ Group+RelDay+ SqRelDay+ OscillActivity,random = ~ 1|Animal,
+                                           data = dataDF[which(!is.na(dataDF$Observation)),]))
               } else {
-                lmeRes = summary(nlme::lme(Observation ~ Group+RelDay + SqRelDay + OscillActivity,random = ~ 1|Animal,data = dataDF))
+                lmeRes = summary(nlme::lme(Observation ~ Group+RelDay + SqRelDay + OscillActivity,random = ~ 1|Animal,
+                                           data = dataDF[which(!is.na(dataDF$Observation)),]))
               }
             }
             else if (model == "constant"){
               if(statLog) {
                 dataDF$LogTObservation = log10(dataDF$Observation)
-                lmeRes = summary(nlme::lme(LogTObservation ~ Group+RelDay+ SqRelDay+ OscillActivity,random = ~ 1|Animal,data = dataDF))
+                lmeRes = summary(nlme::lme(LogTObservation ~ Group+RelDay+ SqRelDay+ OscillActivity,random = ~ 1|Animal,
+                                           data = dataDF[which(!is.na(dataDF$Observation)),]))
               } else {
-                lmeRes = summary(nlme::lme(Observation ~ Group + OscillActivity,random = ~ 1|Animal,data = dataDF))
+                lmeRes = summary(nlme::lme(Observation ~ Group + OscillActivity,random = ~ 1|Animal,
+                                           data = dataDF[which(!is.na(dataDF$Observation)),]))
               }
             }
             else {stop("Model not found")}
