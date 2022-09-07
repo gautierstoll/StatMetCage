@@ -101,7 +101,8 @@ setMethod(f="metaboPlot",
           definition = function(x,type="data"){
             xMinMax = c(min(x@lmeRes$data$RelDay),max(x@lmeRes$data$RelDay))
             yMinMax = c(min(x@lmeRes$data$Observation),
-                        max(x@lmeRes$data$Observation)*(1+.05*length(unique(x@lmeRes$data$Group))))
+                        max(x@lmeRes$data$Observation)+.1*length(unique(x@lmeRes$data$Group))*(max(x@lmeRes$data$Observation) - min(x@lmeRes$data$Observation))
+                        )
             tPoints = sort(unique(x@lmeRes$data$RelDay))
             mCoeff = x@lmeRes$coefficients$fixed
             if((type == "data")|(type == "data.model")){
