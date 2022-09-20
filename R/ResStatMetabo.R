@@ -29,16 +29,19 @@ setClass("ResStatMetabo",
 #' @param group column of anMetData used experimental annotation
 #' @param control name of control in experimental annotation
 #' @param statLog if TRUE, log10 is applied to observation (after normalization) for statistical analysis
+#' @param timWind time window (in days) on which model is applied
 #' @export
-setMethod(f="initialize",
+setMethod( f="initialize",
           signature = "ResStatMetabo",
-          definition = function(.Object,anMetData,observation,model = "quadratic",norm = NULL,group,control = "control",statLog=F){
+          definition = function(.Object,anMetData,observation,model = "quadratic",norm = NULL,group,control = "control",statLog=F,timWind = c() ){
             if (class(anMetData) != "AnalysisMetaboData"){stop("AnMetData is not AnalysisMetaboData")}
             if (!is.element(observation,names(anMetData@data))){stop("Observation not found")}
             .Object@observation = observation
             if (!is.element(group,names(anMetData@data))){stop("Group not found")}
             if (!is.element(control,unlist(anMetData@data[group]))){stop("Control ",control," not found")}
+            if ((length(timWind) == 1) | length(timWind) > 2){stop("Invalid time window")}
             dataDF = anMetData@data[c(anMetData@animal,observation,group,"RelDay","Sun","OscillActivity","SqRelDay")]
+            if (length(timWind) > 1) {dataDF = dataDF[which((dataDF$RelDay > timWind[1]) & (dataDF$RelDay < timWind[2])),]}
             names(dataDF)[1:3] = c("Animal","Observation","Group")
             dataDF$Observation = as.numeric(dataDF$Observation)
             dataDF$Group = factor(dataDF$Group,levels = c(control,setdiff(unique(dataDF$Group),control)))
