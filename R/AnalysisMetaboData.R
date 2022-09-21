@@ -69,3 +69,40 @@ setMethod(f="initialize",
             .Object@animal = animal
             return(.Object)
           })
+
+setGeneric(
+  name = "metaboRawPlot",
+  def = function(x,observation,type="data",group = "Group"){standardGeneric("metaboRawPlot")}
+)
+
+
+#' Plot time dependant metabolic  raw data
+#' @param x AnalysisMetaboData S4 object
+#' @param type type of plot: data, mean.sd
+#' @param group Group for coloring and/or mean/sd
+#' @export
+setMethod(f="metaboRawPlot",
+          signature = "AnalysisMetaboData",
+          definition = function(x,observation,type="data",group = "Group"){
+            Animals = unique(x@data[[x@animal]])
+            AnnotGroups = unique(x@data[[group]])
+            yMinMax = c(min(as.numeric(x@data[[observation]]),na.rm = T),max(as.numeric(x@data[[observation]]),na.rm = T)+
+                         +.1*length(AnnotGroups)*(max(as.numeric(x@data[[observation]]),na.rm = T) - min(as.numeric(x@data[[observation]]),na.rm = T)))
+            plot(x@data$RelDay[which(x@data[[x@animal]] == Animals[1])],
+                 as.numeric(x@data[[observation]][which(x@data[[x@animal]] == Animals[1])]),
+                 col = which(AnnotGroups == x@data[["Group"]][which(x@data[[x@animal]] == Animals[1])[1]]),
+                 ylim = yMinMax,type = "l",xlab = "Relative day" ,ylab = observation)
+            listCol = which(AnnotGroups == x@data[["Group"]][which(x@data[[x@animal]] == Animals[1])[1]])
+            print(listCol)
+            for (animalIndex in (1:(length(Animals)-1))){
+              points(x@data$RelDay[which(x@data[[x@animal]] == Animals[animalIndex])],
+                   as.numeric(x@data[[observation]][which(x@data[[x@animal]] == Animals[animalIndex])]),
+                   col = which(AnnotGroups == x@data[["Group"]][which(x@data[[x@animal]] == Animals[animalIndex])[1]]),
+                   type = "l")
+              listCol = c(listCol,which(AnnotGroups == x@data[["Group"]][which(x@data[[x@animal]] == Animals[animalIndex])[1]]))
+              print(which(AnnotGroups == x@data[["Group"]][which(x@data[[x@animal]] == Animals[animalIndex])[1]]))
+            }
+            print(listCol)
+            xMinMax = c(min(x@data$RelDay),max(x@data$RelDay))
+            legend(x=xMinMax[1],y=yMinMax[2],legend = AnnotGroups,col = unique(listCol),pch=1) ## col may not be correct
+          })
