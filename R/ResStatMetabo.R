@@ -40,16 +40,19 @@ setMethod( f="initialize",
             if (!is.element(group,names(anMetData@data))){stop("Group not found")}
             if (!is.element(control,unlist(anMetData@data[group]))){stop("Control ",control," not found")}
             if ((length(timWind) == 1) | length(timWind) > 2){stop("Invalid time window")}
-            dataDF = anMetData@data[c(anMetData@animal,observation,group,"RelDay","Sun","OscillActivity","SqRelDay")]
-            if (length(timWind) > 1) {dataDF = dataDF[which((dataDF$RelDay > timWind[1]) & (dataDF$RelDay < timWind[2])),]}
+            dataDF = anMetData@data[,c(anMetData@animal,observation,group,"RelDay","Sun","OscillActivity","SqRelDay")]
+            
+            
             names(dataDF)[1:3] = c("Animal","Observation","Group")
             dataDF$Observation = as.numeric(dataDF$Observation)
             dataDF$Group = factor(dataDF$Group,levels = c(control,setdiff(unique(dataDF$Group),control)))
+            
             if(!is.null(norm)) {
-              if (!is.element(norm,names(anMetaData@data))){stop("Normalization not found")}
-              dataDF$Observation = dataDF$Observation/as.numeric(unlist(anMetaData@data[norm]))
+              if (!is.element(norm,names(anMetData@data))){stop("Normalization not found")}
+              dataDF$Observation = dataDF$Observation/as.numeric(unlist(anMetData@data[[norm]]))
             }
             if (is.null(norm)){.Object@norm = character(0)}else{.Object@norm = norm}
+            if (length(timWind) > 1) {dataDF = dataDF[which((dataDF$RelDay > timWind[1]) & (dataDF$RelDay < timWind[2])),]}
             .Object@model = model
             .Object@group = group
             if (model == "linear"){
