@@ -95,7 +95,7 @@ setMethod( f="initialize",
 
 setGeneric(
   name = "metaboPlot",
-  def = function(x,type){standardGeneric("metaboPlot")}
+  def = function(x,type = "data",mainTitle = ""){standardGeneric("metaboPlot")}
 )
 
 #' Plot time dependant metabolic data
@@ -104,7 +104,7 @@ setGeneric(
 #' @export
 setMethod(f="metaboPlot",
           signature = "ResStatMetabo",
-          definition = function(x,type="data"){
+          definition = function(x,type="data",mainTitle = ""){
             xMinMax = c(min(x@lmeRes$data$RelDay),max(x@lmeRes$data$RelDay))
             yMinMax = c(min(x@lmeRes$data$Observation),
                         max(x@lmeRes$data$Observation)+.1*length(unique(x@lmeRes$data$Group))*(max(x@lmeRes$data$Observation) - min(x@lmeRes$data$Observation))
@@ -115,7 +115,7 @@ setMethod(f="metaboPlot",
               plot(x@lmeRes$data$RelDay[which(x@lmeRes$data$Animal == unique(x@lmeRes$data$Animal)[1])],
                    x@lmeRes$data$Observation[which(x@lmeRes$data$Animal == unique(x@lmeRes$data$Animal)[1])],
                    type = "l",lwd = .5,col = as.numeric(x@lmeRes$data$Group)[1],
-                   ylim = yMinMax,xlim=xMinMax,xlab = "Relative day",ylab = x@observation)
+                   ylim = yMinMax,xlim=xMinMax,xlab = "Relative day",ylab = x@observation,main = mainTitle)
 
               for (tmpAnimal in unique(x@lmeRes$data$Animal)[-1]){
                 points(x@lmeRes$data$RelDay[which(x@lmeRes$data$Animal == tmpAnimal)],
@@ -126,7 +126,8 @@ setMethod(f="metaboPlot",
             }
             else if (type == "model"){
               plot(tPoints,lapply(tPoints,function(point){predictStatMetabo(x,point)}),
-                   type = "l",lty=2,lwd=2,col=1, ylim = yMinMax,xlim=xMinMax,xlab = "Relative day",ylab = x@observation)}
+                   type = "l",lty=2,lwd=2,col=1, ylim = yMinMax,xlim=xMinMax,xlab = "Relative day",ylab = x@observation,
+                   main = mainTitle)}
             else {stop("Unknow type of plot")}
             if (type == "data.model"){
               points(tPoints,lapply(tPoints,function(point){predictStatMetabo(x,point)}),type = "l",lty=2,lwd=2,col=1)
