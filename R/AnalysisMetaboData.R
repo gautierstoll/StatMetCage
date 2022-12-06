@@ -40,8 +40,8 @@ setMethod(f="initialize",
             
             dataDF$RelDay = unlist(by(dataDF,dataDF[[animal]], ## double [  create a vector
                                        function(SData){return((unclass(SData$MyTime) - unclass(SData$MyTime)[1])/(24*3600))}))
-            dataDF$Sun = c("day","night")[as.integer((((unclass(dataDF$MyTime[1:100])/3600)%%24-actSwitchHour)/12)%%2)+1] ## same as activity
-            dataDF$OscillActivity = sin((unclass(dataDF$MyTime[1:100])/3600-actSwitchHour)/12*pi)
+            dataDF$Sun = c("day","night")[as.integer((((unclass(dataDF$MyTime)/3600)%%24-actSwitchHour)/12)%%2)+1] ## same as activity
+            dataDF$OscillActivity = sin((unclass(dataDF$MyTime)/3600-actSwitchHour)/12*pi)
               
               sin((dataDF$RelDay-0.3125)/.5*pi)
             dataDF$SqRelDay = dataDF$RelDay^2
