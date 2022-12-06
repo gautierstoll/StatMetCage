@@ -12,7 +12,8 @@
   norm = NULL,
   group,
   control = "control",
-  statLog = F
+  statLog = F,
+  timWind = c()
 )
 }
 \arguments{
@@ -29,6 +30,8 @@
 \item{control}{name of control in experimental annotation}
 
 \item{statLog}{if TRUE, log10 is applied to observation (after normalization) for statistical analysis}
+
+\item{timWind}{time window (in days) on which model is applied}
 }
 \description{
 Constructor for ResStatMetabo, perform a mixed linear statistical test

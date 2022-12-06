@@ -4,10 +4,12 @@
 \alias{initialize,RawMetaboData-method}
 \title{Constructor of class RawMetaboData}
 \usage{
-\S4method{initialize}{RawMetaboData}(.Object, fileName)
+\S4method{initialize}{RawMetaboData}(.Object, fileName, sepCSV = ",")
 }
 \arguments{
 \item{fileName}{.csv file containing raw data}
+
+\item{sepCSBV}{column separator for .csv file}
 }
 \description{
 Constructor of class RawMetaboData

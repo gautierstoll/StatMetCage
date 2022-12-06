@@ -4,7 +4,7 @@
 \alias{metaboPlot,ResStatMetabo-method}
 \title{Plot time dependant metabolic data}
 \usage{
-\S4method{metaboPlot}{ResStatMetabo}(x, type = "data")
+\S4method{metaboPlot}{ResStatMetabo}(x, type = "data", mainTitle = "")
 }
 \arguments{
 \item{x}{ResStatMetabo S4 object}
