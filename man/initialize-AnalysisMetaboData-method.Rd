@@ -9,6 +9,7 @@
   rawData,
   date = "Date",
   time = "Time",
+  actSwitchHour = "6",
   animal = "Animal No.",
   obs = "VO2(3)",
   annotation = character(0),
@@ -21,6 +22,8 @@
 \item{date}{name of date column in raw data}
 
 \item{time}{name of time column in raw data}
+
+\item{actSwitchHour}{hour at which light is switch on}
 
 \item{animal}{name of animal column in raw data}
 

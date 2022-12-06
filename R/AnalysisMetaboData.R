@@ -14,6 +14,7 @@ setClass("AnalysisMetaboData",
 #' @param rawData S4 object of RawMetaboData
 #' @param date name of date column in raw data
 #' @param time name of time column in raw data
+#' @param actSwitchHour hour at which light is switch on
 #' @param animal name of animal column in raw data
 #' @param obs list of observation to be extracted in raw data
 #' @param annotation data frame of annotation to be added to each animals, must contain the column Animal, Time, Date
@@ -25,6 +26,7 @@ setMethod(f="initialize",
                                 rawData,
                                 date = "Date",
                                 time = "Time",
+                                actSwitchHour = "6",
                                 animal = "Animal No.",
                                 obs = "VO2(3)",
                                 annotation = character(0),
@@ -38,8 +40,10 @@ setMethod(f="initialize",
             
             dataDF$RelDay = unlist(by(dataDF,dataDF[[animal]], ## double [  create a vector
                                        function(SData){return((unclass(SData$MyTime) - unclass(SData$MyTime)[1])/(24*3600))}))
-            dataDF$Sun = c("day","night")[as.integer((dataDF$RelDay+.125)*2)%%2+1] ## same as activity
-            dataDF$OscillActivity = sin((dataDF$RelDay-0.3125)/.5*pi)
+            dataDF$Sun = c("day","night")[as.integer((((unclass(dataDF$MyTime[1:100])/3600)%%24-actSwitchHour)/12)%%2)+1] ## same as activity
+            dataDF$OscillActivity = sin((unclass(dataDF$MyTime[1:100])/3600-actSwitchHour)/12*pi)
+              
+              sin((dataDF$RelDay-0.3125)/.5*pi)
             dataDF$SqRelDay = dataDF$RelDay^2
             if (length(annotation)>0){
               if (!is.element("Animal",names(annotation))){stop("No Animal column in annotation")}
