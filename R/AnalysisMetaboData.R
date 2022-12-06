@@ -34,7 +34,7 @@ setMethod(f="initialize",
             if (length(setdiff(rawCol,names(rawData@data))) > 0){stop("Cannot find ",setdiff(rawCol,names(rawData@data)))}
             rawData4A = rawData@data[order(rawData@data[[animal]]),]
             dataDF = rawData4A[c(animal,obs)]
-            dataDF$MyTime =  lubridate::dmy_hm(paste(unlist(rawData4A[date]),unlist(rawData4A[time]),sep=" "))
+            dataDF$MyTime =  lubridate::dmy_hms(paste(unlist(rawData4A[date])," ",unlist(rawData4A[time]),":00",sep=""))
             
             dataDF$RelDay = unlist(by(dataDF,dataDF[[animal]], ## double [  create a vector
                                        function(SData){return((unclass(SData$MyTime) - unclass(SData$MyTime)[1])/(24*3600))}))

@@ -44,7 +44,7 @@ setMethod( f="initialize",
             
             
             names(dataDF)[1:3] = c("Animal","Observation","Group")
-            dataDF$Observation = as.numeric(dataDF$Observation)
+            dataDF$Observation = as.numeric(gsub(",",".",dataDF$Observation,fixed=T))
             dataDF$Group = factor(dataDF$Group,levels = c(control,setdiff(unique(dataDF$Group),control)))
             
             if(!is.null(norm)) {
