@@ -21,5 +21,6 @@ RoxygenNote: 7.2.2
 Collate: 
     'RawMetaboData.R'
     'AnalysisMetaboData.R'
+    'ResDailyMeanStatMetabo.R'
     'ResStatMetabo.R'
     'StatShiny.R'

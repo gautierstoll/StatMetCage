@@ -10,6 +10,8 @@ NULL
 #' @slot group name of data in AnalysisMetaboData used for experimental annotation
 #' @slot model type time model (constant, linear, quadratic)
 #' @slot lmeRes result of mixed linear model
+#' @slot statLog if TRUE, log10 is applied to observation (after normalization) for statistical analysis
+#' @slot timWind time window (in days) on which model is applied
 #' @export
 setClass("ResStatMetabo",
          representation = representation(
@@ -19,7 +21,8 @@ setClass("ResStatMetabo",
            group = "character",
            model = "character",
            lmeRes = "summary.lme",
-           statLog = "logical"
+           statLog = "logical",
+           timWind = "numeric"
          ))
 #' Constructor for ResStatMetabo, perform a mixed linear statistical test
 #' @param anMetData S4 object of AnalysisMetaboData
@@ -53,6 +56,7 @@ setMethod( f="initialize",
             }
             if (is.null(norm)){.Object@norm = character(0)}else{.Object@norm = norm}
             if (length(timWind) > 1) {dataDF = dataDF[which((dataDF$RelDay > timWind[1]) & (dataDF$RelDay < timWind[2])),]}
+            .Object@timWind = timWind
             .Object@model = model
             .Object@group = group
             if (model == "linear"){

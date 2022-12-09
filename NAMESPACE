@@ -3,6 +3,7 @@
 export(StatShiny)
 exportClasses(AnalysisMetaboData)
 exportClasses(RawMetaboData)
+exportClasses(ResDailyMeanStatMetabo)
 exportClasses(ResStatMetabo)
 exportMethods(initialize)
 exportMethods(metaboPlot)
