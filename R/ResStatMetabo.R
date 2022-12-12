@@ -139,7 +139,7 @@ setMethod(f="metaboPlot",
             if ((type == "model") | (type == "data.model"))
               for (iterGr in levels(unlist(x@lmeRes$data[["Group"]]))[-1]){
                 points(tPoints,lapply(tPoints,function(point){predictStatMetabo(x,point,iterGr)}),
-                       type = "l",lty=2,lwd=2, col=which(levels(unlist(x@lmeRes$data[x@group])) == iterGr))
+                       type = "l",lty=2,lwd=2, col=which(levels(unlist(x@lmeRes$data[["Group"]])) == iterGr))
               }
           }
 )
@@ -156,7 +156,7 @@ setMethod(f="predictStatMetabo",
            predRes = fCoeff[["(Intercept)"]] +  fCoeff[["OscillActivity"]]*sin((tPoint-0.3125)/.5*pi)
            if (is.element("RelDay",names(fCoeff))){predRes = predRes + fCoeff[["RelDay"]]*tPoint}
            if (is.element("SqRelDay",names(fCoeff))){predRes = predRes + fCoeff[["SqRelDay"]]*tPoint*tPoint}
-           if (is.element(paste(object@group,group,sep=""),names(fCoeff))){predRes = predRes + fCoeff[[paste(object@group,group,sep="")]]}
+           if (is.element(paste("Group",group,sep=""),names(fCoeff))){predRes = predRes + fCoeff[[paste("Group",group,sep="")]]}
            if (object@statLog){predRes = 10^predRes}
            return(predRes)
           })
