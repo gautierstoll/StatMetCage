@@ -1,6 +1,9 @@
 #' @include AnalysisMetaboData.R
 NULL
 setOldClass("lm")
+setOldClass("lme")
+setOldClass("TukeyHSD")
+setOldClass("multitcomp")
 NULL
 
 #' Class for linear modeling of temporal mean
@@ -8,8 +11,9 @@ NULL
 #' @slot norm name of data in AnalysisMetaboData used for normalization
 #' @slot group name of data in AnalysisMetaboData used for experimental annotation
 #' @slot hourWin window (in hours) for applying mean
-#' @slot meanAnimal true if the mean is applied onto the animal, otherwise only on time window
-#' @slot lmRes result of mixed linear model
+#' @slot lmRes result of linear model applied on mean by animals
+#' @slot lmeRes result of linear mixed model applied on mean by hourWin
+#' @slot tukeyPairs result of Tukey test on lmRes
 #' @slot statLog if TRUE, log10 is applied to observation (after normalization) for statistical analysis
 #' @slot timWind time window (in days) on which model is applied
 #' @export
@@ -19,8 +23,9 @@ setClass("ResDailyMeanStatMetabo",
            norm = "character",
            group = "character",
            hourWin = "numeric",
-           meanAnimal = "logical",
            lmRes = "lm",
+           lmeRes = "lme",
+           tukeyPairs = "TukeyHSD",
            statLog = "logical",
            timWind = "numeric"
          ))
@@ -37,12 +42,11 @@ setClass("ResDailyMeanStatMetabo",
 #' @export
 setMethod(  f="initialize",
            signature = "ResDailyMeanStatMetabo",
-           definition = function(.Object,anMetData,observation,norm = NULL,group,control = "control",hourWin = c(8,20),meanAnimal = F,statLog=F,timWind = c()){
+           definition = function(.Object,anMetData,observation,norm = NULL,group,control = "control",hourWin = c(8,20),statLog=F,timWind = c()){
              .Object@statLog = statLog
-             .Object@norm = norm
+             if (is.null(norm)){.Object@norm = character(0)} else {.Object@norm = norm}
              .Object@hourWin = hourWin
-             .Object@meanAnimal = meanAnimal
-             .Object@timWin = timWin
+             .Object@timWind = timWind
              .Object@group = group
              .Object@observation = observation
              if (class(anMetData) != "AnalysisMetaboData"){stop("AnMetData is not AnalysisMetaboData")}
@@ -58,23 +62,26 @@ setMethod(  f="initialize",
                if (!is.element(norm,names(anMetData@data))){stop("Normalization not found")}
                dataDF$Observation = dataDF$Observation/as.numeric(unlist(anMetData@data[[norm]]))
              }
-             if (is.null(norm)){.Object@norm = character(0)} else {.Object@norm = norm}
              if (length(timWind) > 1) {dataDF = dataDF[which((dataDF$RelDay > timWind[1]) & (dataDF$RelDay < timWind[2])),]}
              .Object@group = group
-             dataDF$activity = c(0,1)[as.integer(((dataDF$MyTime/3600)%%24 > hourWin[1]) & ((dataDF$MyTime/3600)%%24 > hourWin[1])) + 1]
-             dataDF$absolutDay = as.integer((dataDF$MyTime/3600)/24)
-             if (meanAnimal) {
+             if (hourWin[1] < hourWin[2]) {
+               dataDF$activity = c(0,1)[as.integer(((unclass(dataDF$MyTime)/3600)%%24 > hourWin[1]) & ((unclass(dataDF$MyTime)/3600)%%24 < hourWin[2])) + 1]
+             } else {
+               dataDF$activity = c(0,1)[as.integer(((unclass(dataDF$MyTime)/3600)%%24 < hourWin[1]) | ((unclass(dataDF$MyTime)/3600)%%24 > hourWin[2])) + 1]
+             }
+             dataDF$absolutDay = as.integer((unclass(dataDF$MyTime)/3600)/24)
+             
               dataDF4Lm = do.call(rbind,
-               by(dataDF,dataDF$Animal,function(subData){data.frame(Group = subData$Group[1],meanObs = mean(dataDF$Observation[which(dataDF$activity == 1)]))}))
+               by(dataDF,dataDF$Animal,function(subData){data.frame(Group = subData$Group[1],meanObs = mean(subData$Observation))}))
               if (statLog) {dataDF4Lm$meanObs = log10(dataDF4Lm$meanObs)}
-             .Object@lmRes = lm(meanObs ~ Group,data = dataDF4Lm)}
-             else {
-               dataDF4Lm = do.call(rbind,
-                                   by(dataDF,dataDF$Animal,dataDF$absoluteDay,
+             .Object@lmRes = lm(meanObs ~ Group,data = dataDF4Lm)
+               dataDF4Lme = do.call(rbind,
+                                   by(dataDF,dataDF[c('Animal','absolutDay')],
                                       function(subData){data.frame(Group = subData$Group[1],Animal = subData$Animal[1],
-                                                                  meanObs = mean(dataDF$Observation[which(dataDF$activity == 1)]))}))
-               if (statLog) {dataDF4Lm$meanObs = log10(dataDF4Lm$meanObs)}
-               .Objec@lmRes = nlm::lme(meanObs ~ Group,random = ~ 1|Animal)
-               }
+                                                                  meanObs = mean(subData$Observation))}))
+               if (statLog) {dataDF4Lme$meanObs = log10(dataDF4Lme$meanObs)}
+              .Object@lmeRes = nlme::lme(meanObs ~ Group,random = ~ 1|Animal,data = dataDF4Lme)
+              .Object@tukeyPairs = TukeyHSD(aov(meanObs ~ Group,data = dataDF4Lm))
+               
              return(.Object)
            })

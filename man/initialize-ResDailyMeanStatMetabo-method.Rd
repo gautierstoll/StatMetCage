@@ -12,7 +12,6 @@
   group,
   control = "control",
   hourWin = c(8, 20),
-  meanAnimal = F,
   statLog = F,
   timWind = c()
 )
@@ -30,11 +29,11 @@
 
 \item{hourWin}{window (in hours) for applying mean. If it is empty, night is chosen}
 
-\item{meanAnimal}{true if the mean is applied onto the animal, otherwise only on time window}
-
 \item{statLog}{if TRUE, log10 is applied to observation (after normalization) for statistical analysis}
 
 \item{timWind}{time window (in days) on which model is applied}
+
+\item{meanAnimal}{true if the mean is applied onto the animal, otherwise only on time window}
 }
 \description{
 Constructor for ResStatMetabo, perform a mixed linear statistical test

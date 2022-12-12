@@ -18,9 +18,11 @@ Class for linear modeling of temporal mean
 
 \item{\code{hourWin}}{window (in hours) for applying mean}
 
-\item{\code{meanAnimal}}{true if the mean is applied onto the animal, otherwise only on time window}
+\item{\code{lmRes}}{result of linear model applied on mean by animals}
 
-\item{\code{lmRes}}{result of mixed linear model}
+\item{\code{lmeRes}}{result of linear mixed model applied on mean by hourWin}
+
+\item{\code{tukeyPairs}}{result of Tukey test on lmRes}
 
 \item{\code{statLog}}{if TRUE, log10 is applied to observation (after normalization) for statistical analysis}
 
