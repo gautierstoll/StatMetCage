@@ -137,7 +137,7 @@ setMethod(f="metaboPlot",
               points(tPoints,lapply(tPoints,function(point){predictStatMetabo(x,point)}),type = "l",lty=2,lwd=2,col=1)
             }
             if ((type == "model") | (type == "data.model"))
-              for (iterGr in levels(unlist(x@lmeRes$data[x@group]))[-1]){
+              for (iterGr in levels(unlist(x@lmeRes$data[["Group"]]))[-1]){
                 points(tPoints,lapply(tPoints,function(point){predictStatMetabo(x,point,iterGr)}),
                        type = "l",lty=2,lwd=2, col=which(levels(unlist(x@lmeRes$data[x@group])) == iterGr))
               }
