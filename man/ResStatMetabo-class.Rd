@@ -18,6 +18,8 @@ Class for results of statistical analysis
 
 \item{\code{group}}{name of data in AnalysisMetaboData used for experimental annotation}
 
+\item{\code{actSwitchHour}}{hour at which light is switch on}
+
 \item{\code{model}}{type time model (constant, linear, quadratic)}
 
 \item{\code{lmeRes}}{result of mixed linear model}

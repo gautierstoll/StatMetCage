@@ -23,7 +23,7 @@
 
 \item{time}{name of time column in raw data}
 
-\item{actSwitchHour}{hour at which light is switch on}
+\item{actSwitchHour}{hour at which light is switched on}
 
 \item{animal}{name of animal column in raw data}
 

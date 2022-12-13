@@ -8,6 +8,7 @@ NULL
 #' @slot observation name of output extracted for AnalysisMetaboData
 #' @slot norm name of data in AnalysisMetaboData used for normalization
 #' @slot group name of data in AnalysisMetaboData used for experimental annotation
+#' @slot actSwitchHour hour at which light is switch on
 #' @slot model type time model (constant, linear, quadratic)
 #' @slot lmeRes result of mixed linear model
 #' @slot statLog if TRUE, log10 is applied to observation (after normalization) for statistical analysis
@@ -19,6 +20,7 @@ setClass("ResStatMetabo",
            observation = "character",
            norm = "character",
            group = "character",
+           actSwitchHour = "numeric",
            model = "character",
            lmeRes = "summary.lme",
            statLog = "logical",
@@ -37,6 +39,7 @@ setClass("ResStatMetabo",
 setMethod( f="initialize",
           signature = "ResStatMetabo",
           definition = function(.Object,anMetData,observation,model = "quadratic",norm = NULL,group,control = "control",statLog=F,timWind = c() ){
+            .Object@actSwitchHour = anMetData@actSwitchHour
             if (class(anMetData) != "AnalysisMetaboData"){stop("AnMetData is not AnalysisMetaboData")}
             if (!is.element(observation,names(anMetData@data))){stop("Observation not found")}
             .Object@observation = observation
@@ -62,30 +65,30 @@ setMethod( f="initialize",
             if (model == "linear"){
               if(statLog) {
                 dataDF$LogTObservation = log10(dataDF$Observation)
-                lmeRes = summary(nlme::lme(LogTObservation ~ Group+RelDay + OscillActivity,random = ~ 1|Animal,
+                lmeRes = summary(nlme::lme(LogTObservation ~ Group*OscillActivity+RelDay,random = ~ 1|Animal,
                                            data = dataDF[which(!is.na(dataDF$Observation)),]))
               } else {
-              lmeRes = summary(nlme::lme(Observation ~ Group+RelDay + OscillActivity,random = ~ 1|Animal,
+              lmeRes = summary(nlme::lme(Observation ~ Group*OscillActivity+RelDay,random = ~ 1|Animal,
                                          data = dataDF[which(!is.na(dataDF$Observation)),]))
               }
             }
             else if (model == "quadratic"){
               if(statLog) {
                 dataDF$LogTObservation = log10(dataDF$Observation)
-                lmeRes = summary(nlme::lme(LogTObservation ~ Group+RelDay+ SqRelDay+ OscillActivity,random = ~ 1|Animal,
+                lmeRes = summary(nlme::lme(LogTObservation ~ (Group*OscillActivity)+RelDay+ SqRelDay,random = ~ 1|Animal,
                                            data = dataDF[which(!is.na(dataDF$Observation)),]))
               } else {
-                lmeRes = summary(nlme::lme(Observation ~ Group+RelDay + SqRelDay + OscillActivity,random = ~ 1|Animal,
+                lmeRes = summary(nlme::lme(Observation ~ (Group*OscillActivity)+RelDay+ SqRelDay,random = ~ 1|Animal,
                                            data = dataDF[which(!is.na(dataDF$Observation)),]))
               }
             }
             else if (model == "constant"){
               if(statLog) {
                 dataDF$LogTObservation = log10(dataDF$Observation)
-                lmeRes = summary(nlme::lme(LogTObservation ~ Group+RelDay+ SqRelDay+ OscillActivity,random = ~ 1|Animal,
+                lmeRes = summary(nlme::lme(LogTObservation ~ Group*OscillActivity,random = ~ 1|Animal,
                                            data = dataDF[which(!is.na(dataDF$Observation)),]))
               } else {
-                lmeRes = summary(nlme::lme(Observation ~ Group + OscillActivity,random = ~ 1|Animal,
+                lmeRes = summary(nlme::lme(Observation ~ Group*OscillActivity,random = ~ 1|Animal,
                                            data = dataDF[which(!is.na(dataDF$Observation)),]))
               }
             }
@@ -152,11 +155,22 @@ setGeneric(
 setMethod(f="predictStatMetabo",
           signature = "ResStatMetabo",
           definition = function(object,tPoint,group=""){
+          phaseRelDay = object@lmeRes$data$RelDay[1]-asin(object@lmeRes$data$OscillActivity[1])/2/pi
            fCoeff = object@lmeRes$coefficients$fixed
-           predRes = fCoeff[["(Intercept)"]] +  fCoeff[["OscillActivity"]]*sin((tPoint-0.3125)/.5*pi)
-           if (is.element("RelDay",names(fCoeff))){predRes = predRes + fCoeff[["RelDay"]]*tPoint}
+           predRes = fCoeff[["(Intercept)"]]
+           if (is.element(paste("Group",group,sep=""),names(fCoeff))){
+             predRes = predRes + 
+               fCoeff[[paste("Group",group,sep="")]] +
+             (fCoeff[["OscillActivity"]]+fCoeff[[paste("Group",group,":","OscillActivity",sep="")]])*sin((tPoint-phaseRelDay)/.5*pi)
+             }
+           else {
+             predRes = predRes + 
+             +(fCoeff[["OscillActivity"]])*sin((tPoint-phaseRelDay)/.5*pi)
+           }
+           if (is.element("RelDay",names(fCoeff))){ 
+             predRes = predRes + fCoeff[["RelDay"]]*tPoint
+             }
            if (is.element("SqRelDay",names(fCoeff))){predRes = predRes + fCoeff[["SqRelDay"]]*tPoint*tPoint}
-           if (is.element(paste("Group",group,sep=""),names(fCoeff))){predRes = predRes + fCoeff[[paste("Group",group,sep="")]]}
            if (object@statLog){predRes = 10^predRes}
            return(predRes)
           })

@@ -4,17 +4,19 @@ NULL
 #' Class of data for statistical analysis
 #' @slot data data frame that contains animal, specified observations, absolute time (my time), floating point day (RelDay), day activity (Sun), sine function based on day activity, squared floating point day (SqRelDay)
 #' @slot animal name of animal column
+#' @slot actSwitchHour hour at which light is switch on
 #' @export
 setClass("AnalysisMetaboData",
          representation = representation(
            data = "data.frame",
-           animal = "character"
+           animal = "character",
+           actSwitchHour = "numeric"
          ))
 #' Constructor of AnalysisMetaboData
 #' @param rawData S4 object of RawMetaboData
 #' @param date name of date column in raw data
 #' @param time name of time column in raw data
-#' @param actSwitchHour hour at which light is switch on
+#' @param actSwitchHour hour at which light is switched on
 #' @param animal name of animal column in raw data
 #' @param obs list of observation to be extracted in raw data
 #' @param annotation data frame of annotation to be added to each animals, must contain the column Animal, Time, Date
@@ -43,7 +45,6 @@ setMethod(f="initialize",
             dataDF$Sun = c("day","night")[as.integer((((unclass(dataDF$MyTime)/3600)%%24-actSwitchHour)/12)%%2)+1] ## same as activity
             dataDF$OscillActivity = sin((unclass(dataDF$MyTime)/3600-actSwitchHour)/12*pi)
               
-              sin((dataDF$RelDay-0.3125)/.5*pi)
             dataDF$SqRelDay = dataDF$RelDay^2
             if (length(annotation)>0){
               if (!is.element("Animal",names(annotation))){stop("No Animal column in annotation")}
@@ -71,6 +72,7 @@ setMethod(f="initialize",
                return(cbind(subDF,subAnnot4DF))}))}
              else {.Object@data = dataDF}
             .Object@animal = animal
+            .Object@actSwitchHour = actSwitchHour 
             return(.Object)
           })
 

@@ -13,5 +13,7 @@ Class of data for statistical analysis
 \item{\code{data}}{data frame that contains animal, specified observations, absolute time (my time), floating point day (RelDay), day activity (Sun), sine function based on day activity, squared floating point day (SqRelDay)}
 
 \item{\code{animal}}{name of animal column}
+
+\item{\code{actSwitchHour}}{hour at which light is switch on}
 }}
 
