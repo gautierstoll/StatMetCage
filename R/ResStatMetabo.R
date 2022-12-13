@@ -118,6 +118,17 @@ setMethod(f="metaboPlot",
                         )
             tPoints = sort(unique(x@lmeRes$data$RelDay))
             mCoeff = x@lmeRes$coefficients$fixed
+            predRes = rep(mCoeff[["(Intercept)"]],length(tPoints))
+            if (is.element("RelDay",names(mCoeff))){ 
+              predRes = predRes + mCoeff[["RelDay"]]*tPoints
+            }
+            if (is.element("SqRelDay",names(mCoeff))){predRes = predRes + mCoeff[["SqRelDay"]]*tPoints*tPoints}
+            predOsc = sapply(tPoints,function(t){
+              Osc = x@lmeRes$data$OscillActivity[which(x@lmeRes$data$RelDay == t)]
+              if (length(Osc) > 1) {return(Osc[1])} else {return(Osc)}
+            })
+            
+            ##
             if((type == "data")|(type == "data.model")){
               plot(x@lmeRes$data$RelDay[which(x@lmeRes$data$Animal == unique(x@lmeRes$data$Animal)[1])],
                    x@lmeRes$data$Observation[which(x@lmeRes$data$Animal == unique(x@lmeRes$data$Animal)[1])],
@@ -132,16 +143,20 @@ setMethod(f="metaboPlot",
               legend(x=xMinMax[1],y=yMinMax[2],legend = unique(x@lmeRes$data$Group),col = as.numeric(unique(x@lmeRes$data$Group)),pch=1)
             }
             else if (type == "model"){
-              plot(tPoints,lapply(tPoints,function(point){predictStatMetabo(x,point)}),
+              predResOsc = predRes + predOsc*mCoeff[["OscillActivity"]]
+              plot(tPoints,predResOsc,
                    type = "l",lty=2,lwd=2,col=1, ylim = yMinMax,xlim=xMinMax,xlab = "Relative day",ylab = x@observation,
                    main = mainTitle)}
             else {stop("Unknow type of plot")}
             if (type == "data.model"){
-              points(tPoints,lapply(tPoints,function(point){predictStatMetabo(x,point)}),type = "l",lty=2,lwd=2,col=1)
+              predResOsc = predRes + predOsc*mCoeff[["OscillActivity"]]
+              points(tPoints,predResOsc,type = "l",lty=2,lwd=2,col=1)
             }
             if ((type == "model") | (type == "data.model"))
               for (iterGr in levels(unlist(x@lmeRes$data[["Group"]]))[-1]){
-                points(tPoints,lapply(tPoints,function(point){predictStatMetabo(x,point,iterGr)}),
+                predResOsc = predRes + mCoeff[[paste("Group",iterGr,sep="")]] +
+                  predOsc*(mCoeff[["OscillActivity"]] + mCoeff[[paste("Group",iterGr,":","OscillActivity",sep="")]])
+                points(tPoints,predResOsc,
                        type = "l",lty=2,lwd=2, col=which(levels(unlist(x@lmeRes$data[["Group"]])) == iterGr))
               }
           }
