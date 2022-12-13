@@ -67,7 +67,7 @@ setMethod(  f="initialize",
              if (hourWin[1] < hourWin[2]) {
                dataDF$activity = c(0,1)[as.integer(((unclass(dataDF$MyTime)/3600)%%24 > hourWin[1]) & ((unclass(dataDF$MyTime)/3600)%%24 < hourWin[2])) + 1]
              } else {
-               dataDF$activity = c(0,1)[as.integer(((unclass(dataDF$MyTime)/3600)%%24 < hourWin[1]) | ((unclass(dataDF$MyTime)/3600)%%24 > hourWin[2])) + 1]
+               dataDF$activity = c(0,1)[as.integer(((unclass(dataDF$MyTime)/3600)%%24 > hourWin[1]) | ((unclass(dataDF$MyTime)/3600)%%24 < hourWin[2])) + 1]
              }
              dataDF$absolutDay = as.integer((unclass(dataDF$MyTime)/3600)/24)
              
