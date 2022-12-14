@@ -10,6 +10,8 @@
 \item{x}{ResStatMetabo S4 object}
 
 \item{type}{type of plot: data, data.model or model}
+
+\item{mainTitle}{title}
 }
 \description{
 Plot time dependant metabolic data

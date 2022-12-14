@@ -108,6 +108,7 @@ setGeneric(
 #' Plot time dependant metabolic data
 #' @param x ResStatMetabo S4 object
 #' @param type type of plot: data, data.model or model
+#' @param mainTitle title
 #' @export
 setMethod(f="metaboPlot",
           signature = "ResStatMetabo",
