@@ -118,7 +118,7 @@ setMethod(f="metaboDailyPlot",
             minTr=min(plotDf$meanObs,na.rm=T)
             maxTr=max(plotDf$meanObs,na.rm=T)
             boxplot(meanObs ~ Group,
-                    data=plotDf,main="",
+                    data=plotDf,main=mainTitle,
                     xlab="",
                     ylab=x@observation,
                     cex.axis=.5,
