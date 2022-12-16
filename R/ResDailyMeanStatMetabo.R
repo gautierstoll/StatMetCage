@@ -70,15 +70,14 @@ setMethod(  f="initialize",
                dataDF$activity = c(0,1)[as.integer(((unclass(dataDF$MyTime)/3600)%%24 > hourWin[1]) | ((unclass(dataDF$MyTime)/3600)%%24 < hourWin[2])) + 1]
              }
              dataDF$absolutDay = as.integer((unclass(dataDF$MyTime)/3600)/24)
-             
               dataDF4Lm = do.call(rbind,
-               by(dataDF,dataDF$Animal,function(subData){data.frame(Group = subData$Group[1],meanObs = mean(subData$Observation))}))
+               by(dataDF,dataDF$Animal,function(subData){data.frame(Group = subData$Group[1],meanObs = mean(subData$Observation[which(subData$activity == 1)]))}))
               if (statLog) {dataDF4Lm$meanObs = log10(dataDF4Lm$meanObs)}
              .Object@lmRes = lm(meanObs ~ Group,data = dataDF4Lm)
                dataDF4Lme = do.call(rbind,
                                    by(dataDF,dataDF[c('Animal','absolutDay')],
                                       function(subData){data.frame(Group = subData$Group[1],Animal = subData$Animal[1],
-                                                                  meanObs = mean(subData$Observation))}))
+                                                                  meanObs = mean(subData$Observation[which(subData$activity == 1)]))}))
                if (statLog) {dataDF4Lme$meanObs = log10(dataDF4Lme$meanObs)}
               .Object@lmeRes = nlme::lme(meanObs ~ Group,random = ~ 1|Animal,data = dataDF4Lme)
               .Object@tukeyPairs = TukeyHSD(aov(meanObs ~ Group,data = dataDF4Lm))
