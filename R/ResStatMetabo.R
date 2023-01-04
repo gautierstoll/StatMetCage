@@ -9,7 +9,7 @@ NULL
 #' @slot norm name of data in AnalysisMetaboData used for normalization
 #' @slot group name of data in AnalysisMetaboData used for experimental annotation
 #' @slot actSwitchHour hour at which light is switch on
-#' @slot model type time model (constant, linear, quadratic)
+#' @slot model type time model (constant, linear, quadratic, linearReg)
 #' @slot lmeRes result of mixed linear model
 #' @slot statLog if TRUE, log10 is applied to observation (after normalization) for statistical analysis
 #' @slot timWind time window (in days) on which model is applied
@@ -29,7 +29,7 @@ setClass("ResStatMetabo",
 #' Constructor for ResStatMetabo, perform a mixed linear statistical test
 #' @param anMetData S4 object of AnalysisMetaboData
 #' @param observation column of anMetData used for analysis
-#' @param model type of time model (constant, linear, quadratic)
+#' @param model type of time model (constant, linear, quadratic, linearReg)
 #' @param norm column of anMetData used for normalization (if NULL, no normalization is applied)
 #' @param group column of anMetData used experimental annotation
 #' @param control name of control in experimental annotation
@@ -92,6 +92,15 @@ setMethod( f="initialize",
                                            data = dataDF[which(!is.na(dataDF$Observation)),]))
               }
             }
+            else if (model == "linearReg")
+              if(statLog) {
+                dataDF$LogTObservation = log10(dataDF$Observation)
+                lmeRes = summary(nlme::lme(LogTObservation ~ Group*RelDay+OscillActivity,random = ~ 1|Animal,
+                                           data = dataDF[which(!is.na(dataDF$Observation)),]))
+              } else {
+                lmeRes = summary(nlme::lme(Observation ~ Group*RelDay+OscillActivity,random = ~ 1|Animal,
+                                           data = dataDF[which(!is.na(dataDF$Observation)),]))
+              }
             else {stop("Model not found")}
             .Object@lmeRes = lmeRes
             .Object@statLog = statLog
@@ -155,8 +164,13 @@ setMethod(f="metaboPlot",
             }
             if ((type == "model") | (type == "data.model"))
               for (iterGr in levels(unlist(x@lmeRes$data[["Group"]]))[-1]){
+                if (x@model == "linearReg") {
+                  predResOsc = predRes + mCoeff[[paste("Group",iterGr,sep="")]] +
+                    predOsc*(mCoeff[["OscillActivity"]]) +
+                    mCoeff[[paste("Group",iterGr,":","RelDay",sep="")]] * tPoints
+                } else {
                 predResOsc = predRes + mCoeff[[paste("Group",iterGr,sep="")]] +
-                  predOsc*(mCoeff[["OscillActivity"]] + mCoeff[[paste("Group",iterGr,":","OscillActivity",sep="")]])
+                  predOsc*(mCoeff[["OscillActivity"]] + mCoeff[[paste("Group",iterGr,":","OscillActivity",sep="")]])}
                 points(tPoints,predResOsc,
                        type = "l",lty=2,lwd=2, col=which(levels(unlist(x@lmeRes$data[["Group"]])) == iterGr))
               }

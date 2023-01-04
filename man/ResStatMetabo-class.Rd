@@ -20,7 +20,7 @@ Class for results of statistical analysis
 
 \item{\code{actSwitchHour}}{hour at which light is switch on}
 
-\item{\code{model}}{type time model (constant, linear, quadratic)}
+\item{\code{model}}{type time model (constant, linear, quadratic, linearReg)}
 
 \item{\code{lmeRes}}{result of mixed linear model}
 

@@ -21,7 +21,7 @@
 
 \item{observation}{column of anMetData used for analysis}
 
-\item{model}{type of time model (constant, linear, quadratic)}
+\item{model}{type of time model (constant, linear, quadratic, linearReg)}
 
 \item{norm}{column of anMetData used for normalization (if NULL, no normalization is applied)}
 
