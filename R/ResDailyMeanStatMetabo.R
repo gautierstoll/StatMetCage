@@ -88,41 +88,47 @@ setMethod(  f="initialize",
 
 setGeneric(
   name = "metaboDailyPlot",
-  def = function(x,signif,mainTitle = ""){standardGeneric("metaboDailyPlot")}
+  def = function(x,signif,pvalStar = T ,mainTitle = "",cex.axis.lab = 1){standardGeneric("metaboDailyPlot")}
 )
 
 
 #' Plot time dependant metabolic data
 #' @param x ResDailyMeanStatMetabo S4 object
 #' @param signif true for significance pairwise annotation
+#' @param pvalStar significant annotation with stars instead of p-value
 #' @param type type of plot: data, data.model or model
+#' @param cex.axis.lab cex of axis tick, label, title and pval
 #' @export
-setMethod(f="metaboDailyPlot",
+setMethod( f="metaboDailyPlot",
           signature = "ResDailyMeanStatMetabo",
-          definition = function(x,signif=T,mainTitle = ""){
+          definition = function(x,signif=T,pvalStar = T,mainTitle = "",cex.axis.lab=1){
             plotDf = x@lmRes$model
             pairwisePval=t(x@tukeyPairs$Group[,4,drop=F])
             names(pairwisePval) = row.names(x@tukeyPairs$Group)
-            # print(str(pairwisePval))
-            ListSignif=(sapply(1:length(pairwisePval),function(index){
-              ## if (!is.finite(pairwisePval[index])){return(c())}
+            if (pvalStar) {
+            ListSignif = (sapply(1:length(pairwisePval),function(index){
               if(pairwisePval[index] < 0.0001){return(c("****",strsplit(names(pairwisePval)[index],split = "-")[[1]]))}
               else if(pairwisePval[index] < 0.001){return(c("***",strsplit(names(pairwisePval)[index],split = "-")[[1]]))}
               else if(pairwisePval[index] < 0.01){return(c("**",strsplit(names(pairwisePval)[index],split = "-")[[1]]))}
               else if(pairwisePval[index] < 0.05){return(c("*",strsplit(names(pairwisePval)[index],split = "-")[[1]]))}
               else {return(c())}
-            }))
+            }))} else {
+              ListSignif=(sapply(1:length(pairwisePval),function(index){
+                if(pairwisePval[index] < 0.05){return(c(paste("p=",format(pairwisePval[index],digits = 2),sep=""),strsplit(names(pairwisePval)[index],split = "-")[[1]]))}
+                else {return(c())}
+            }))}
             ListSignif = ListSignif[which(sapply(ListSignif,length) > 0)]
             ListSignifPosIndex = lapply(ListSignif,function(hit){
               return(c(which(levels(plotDf$Group) == hit[2]),which(levels(plotDf$Group) == hit[3])))})
             minTr=min(plotDf$meanObs,na.rm=T)
             maxTr=max(plotDf$meanObs,na.rm=T)
+            par(mar =c(cex.axis.lab*2,cex.axis.lab*4,cex.axis.lab*2,cex.axis.lab*2))
             boxplot(meanObs ~ Group,
-                    data=plotDf,main=mainTitle,
+                    data=plotDf,main=mainTitle,cex.main = cex.axis.lab,
                     xlab="",
                     ylab=x@observation,
-                    cex.axis=.5,
-                    cex.lab=.5,
+                    cex.axis=cex.axis.lab,
+                    cex.lab=cex.axis.lab,
                     ylim=c(minTr,length(ListSignif)*abs(maxTr-minTr)*.2+maxTr)
             )
             if (length(ListSignif) > 0) {
@@ -133,13 +139,13 @@ setMethod(f="metaboDailyPlot",
                   segments(y0=maxTr+(signifIndex-.4)*abs(maxTr-minTr)*.2,
                            x0= ListSignifPosIndex[[signifIndex]][1],x1=ListSignifPosIndex[[signifIndex]][2])
                   text(x=(ListSignifPosIndex[[signifIndex]][1]+ListSignifPosIndex[[signifIndex]][2])/2,y=maxTr+(signifIndex-.1)*abs(maxTr-minTr)*.2,
-                       labels=ListSignif[[signifIndex]][1])
+                       labels=ListSignif[[signifIndex]][1],cex=cex.axis.lab)
                 }
               } else {
                 segments(y0=maxTr+(1-.4)*abs(maxTr-minTr)*.2,
                          x0= 1,x1=2)
                 text(x=1+1/2,y=maxTr+(1-.1)*abs(maxTr-minTr)*.2,
-                     labels=ListSignif[1])
+                     labels=ListSignif[1],cex=cex.axis.lab)
               }
             }
             beeswarm::beeswarm(meanObs ~ Group,data=plotDf,add=T,cex=.5,col="red")
