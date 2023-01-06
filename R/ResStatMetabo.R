@@ -47,8 +47,6 @@ setMethod( f="initialize",
             if (!is.element(control,unlist(anMetData@data[group]))){stop("Control ",control," not found")}
             if ((length(timWind) == 1) | length(timWind) > 2){stop("Invalid time window")}
             dataDF = anMetData@data[,c(anMetData@animal,observation,group,"RelDay","Sun","OscillActivity","SqRelDay")]
-            
-            
             names(dataDF)[1:3] = c("Animal","Observation","Group")
             dataDF$Observation = as.numeric(gsub(",",".",dataDF$Observation,fixed=T))
             dataDF$Group = factor(dataDF$Group,levels = c(control,setdiff(unique(dataDF$Group),control)))
@@ -69,8 +67,7 @@ setMethod( f="initialize",
                                            data = dataDF[which(!is.na(dataDF$Observation)),]))
               } else {
               lmeRes = summary(nlme::lme(Observation ~ Group*OscillActivity+RelDay,random = ~ 1|Animal,
-                                         data = dataDF[which(!is.na(dataDF$Observation)),]))
-              }
+                                         data = dataDF[which(!is.na(dataDF$Observation)),]))}
             }
             else if (model == "quadratic"){
               if(statLog) {
@@ -79,8 +76,7 @@ setMethod( f="initialize",
                                            data = dataDF[which(!is.na(dataDF$Observation)),]))
               } else {
                 lmeRes = summary(nlme::lme(Observation ~ (Group*OscillActivity)+RelDay+ SqRelDay,random = ~ 1|Animal,
-                                           data = dataDF[which(!is.na(dataDF$Observation)),]))
-              }
+                                           data = dataDF[which(!is.na(dataDF$Observation)),]))}
             }
             else if (model == "constant"){
               if(statLog) {
@@ -89,8 +85,7 @@ setMethod( f="initialize",
                                            data = dataDF[which(!is.na(dataDF$Observation)),]))
               } else {
                 lmeRes = summary(nlme::lme(Observation ~ Group*OscillActivity,random = ~ 1|Animal,
-                                           data = dataDF[which(!is.na(dataDF$Observation)),]))
-              }
+                                           data = dataDF[which(!is.na(dataDF$Observation)),]))}
             }
             else if (model == "linearReg")
               if(statLog) {
@@ -99,29 +94,29 @@ setMethod( f="initialize",
                                            data = dataDF[which(!is.na(dataDF$Observation)),]))
               } else {
                 lmeRes = summary(nlme::lme(Observation ~ Group*RelDay+OscillActivity,random = ~ 1|Animal,
-                                           data = dataDF[which(!is.na(dataDF$Observation)),]))
-              }
+                                           data = dataDF[which(!is.na(dataDF$Observation)),]))}
             else {stop("Model not found")}
             .Object@lmeRes = lmeRes
             .Object@statLog = statLog
-
 ##            .Object@data = dataDF data is already in lmeRes
             return(.Object)
           })
 
 setGeneric(
   name = "metaboPlot",
-  def = function(x,type = "data",mainTitle = ""){standardGeneric("metaboPlot")}
-)
+  def = function(x,type = "data",mainTitle = "",cex.axis.lab = 1,inner.title = "",inner.left.pos = NaN){standardGeneric("metaboPlot")})
 
 #' Plot time dependant metabolic data
 #' @param x ResStatMetabo S4 object
 #' @param type type of plot: data, data.model or model
 #' @param mainTitle title
+#' @param cex.lab.axis cex of axis tick, label, title and pval
+#' @param inner.title title inside the plot, next to legend
+#' @param inner.let.pos xposition of inner title
 #' @export
 setMethod(f="metaboPlot",
           signature = "ResStatMetabo",
-          definition = function(x,type="data",mainTitle = ""){
+          definition = function(x,type="data",mainTitle = "",cex.axis.lab = 1,inner.title = "",inner.left.pos = NaN){
             xMinMax = c(min(x@lmeRes$data$RelDay),max(x@lmeRes$data$RelDay))
             yMinMax = c(min(x@lmeRes$data$Observation),
                         max(x@lmeRes$data$Observation)+.1*length(unique(x@lmeRes$data$Group))*(max(x@lmeRes$data$Observation) - min(x@lmeRes$data$Observation))
@@ -140,23 +135,35 @@ setMethod(f="metaboPlot",
             
             ##
             if((type == "data")|(type == "data.model")){
+              par(mar =c(cex.axis.lab*2,cex.axis.lab*4,cex.axis.lab*2,cex.axis.lab*2))
               plot(x@lmeRes$data$RelDay[which(x@lmeRes$data$Animal == unique(x@lmeRes$data$Animal)[1])],
                    x@lmeRes$data$Observation[which(x@lmeRes$data$Animal == unique(x@lmeRes$data$Animal)[1])],
-                   type = "l",lwd = .5,col = as.numeric(x@lmeRes$data$Group)[1],
-                   ylim = yMinMax,xlim=xMinMax,xlab = "Relative day",ylab = x@observation,main = mainTitle)
+                   type = "l",lwd = .3,col = as.numeric(x@lmeRes$data$Group)[1],
+                   ylim = yMinMax,xlim=xMinMax,xlab = "Relative day",ylab = x@observation,main = mainTitle,
+                   cex.main = cex.axis.lab,cex.axis=cex.axis.lab,cex.lab=cex.axis.lab)
 
               for (tmpAnimal in unique(x@lmeRes$data$Animal)[-1]){
                 points(x@lmeRes$data$RelDay[which(x@lmeRes$data$Animal == tmpAnimal)],
                        x@lmeRes$data$Observation[which(x@lmeRes$data$Animal == tmpAnimal)],
                        col = unique(as.numeric(x@lmeRes$data$Group[which(x@lmeRes$data$Animal == tmpAnimal)])),
-                       type = "l",lwd = .5)}
+                       type = "l",lwd = .3)}
               legend(x=xMinMax[1],y=yMinMax[2],legend = unique(x@lmeRes$data$Group),col = as.numeric(unique(x@lmeRes$data$Group)),pch=1)
+              if (nchar(inner.title) > 0) {
+                leftPos = if (is.nan(inner.left.pos)) {(xMinMax[1]+xMinMax[2])/2} else {inner.left.pos}
+              legend(x=leftPos,y=yMinMax[2],legend = inner.title,cex = cex.axis.lab)}
             }
             else if (type == "model"){
               predResOsc = predRes + predOsc*mCoeff[["OscillActivity"]]
+              par(mar =c(cex.axis.lab*2,cex.axis.lab*4,cex.axis.lab*2,cex.axis.lab*2))
               plot(tPoints,predResOsc,
                    type = "l",lty=2,lwd=2,col=1, ylim = yMinMax,xlim=xMinMax,xlab = "Relative day",ylab = x@observation,
-                   main = mainTitle)}
+                   main = mainTitle,
+                   cex.main = cex.axis.lab,cex.axis=cex.axis.lab,cex.lab=cex.axis.lab)
+              legend(x=xMinMax[1],y=yMinMax[2],legend = unique(x@lmeRes$data$Group),col = as.numeric(unique(x@lmeRes$data$Group)),pch=1)
+              if (nchar(inner.title) > 0) {
+                leftPos = if (is.nan(inner.left.pos)) {(xMinMax[1]+xMinMax[2])/2} else {inner.left.pos}
+                legend(x=leftPos,y=yMinMax[2],legend = inner.title,cex = cex.axis.lab)}
+              }
             else {stop("Unknow type of plot")}
             if (type == "data.model"){
               predResOsc = predRes + predOsc*mCoeff[["OscillActivity"]]

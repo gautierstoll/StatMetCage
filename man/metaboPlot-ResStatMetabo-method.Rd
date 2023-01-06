@@ -4,7 +4,14 @@
 \alias{metaboPlot,ResStatMetabo-method}
 \title{Plot time dependant metabolic data}
 \usage{
-\S4method{metaboPlot}{ResStatMetabo}(x, type = "data", mainTitle = "")
+\S4method{metaboPlot}{ResStatMetabo}(
+  x,
+  type = "data",
+  mainTitle = "",
+  cex.axis.lab = 1,
+  inner.title = "",
+  inner.left.pos = NaN
+)
 }
 \arguments{
 \item{x}{ResStatMetabo S4 object}
@@ -12,6 +19,12 @@
 \item{type}{type of plot: data, data.model or model}
 
 \item{mainTitle}{title}
+
+\item{inner.title}{title inside the plot, next to legend}
+
+\item{cex.lab.axis}{cex of axis tick, label, title and pval}
+
+\item{inner.let.pos}{xposition of inner title}
 }
 \description{
 Plot time dependant metabolic data
