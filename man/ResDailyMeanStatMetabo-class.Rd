@@ -27,5 +27,7 @@ Class for linear modeling of temporal mean
 \item{\code{statLog}}{if TRUE, log10 is applied to observation (after normalization) for statistical analysis}
 
 \item{\code{timWind}}{time window (in days) on which model is applied}
+
+\item{\code{cumul}}{last minus first value in time window instead of mean}
 }}
 

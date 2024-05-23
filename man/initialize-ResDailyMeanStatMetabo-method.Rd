@@ -13,7 +13,8 @@
   control = "control",
   hourWin = c(8, 20),
   statLog = F,
-  timWind = c()
+  timWind = c(),
+  cumul = F
 )
 }
 \arguments{
@@ -32,6 +33,8 @@
 \item{statLog}{if TRUE, log10 is applied to observation (after normalization) for statistical analysis}
 
 \item{timWind}{time window (in days) on which model is applied}
+
+\item{cumul}{last minus first value in time window instead of mean}
 
 \item{meanAnimal}{true if the mean is applied onto the animal, otherwise only on time window}
 }

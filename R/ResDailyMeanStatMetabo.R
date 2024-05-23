@@ -16,6 +16,7 @@ NULL
 #' @slot tukeyPairs result of Tukey test on lmRes
 #' @slot statLog if TRUE, log10 is applied to observation (after normalization) for statistical analysis
 #' @slot timWind time window (in days) on which model is applied
+#' @slot cumul last minus first value in time window instead of mean
 #' @export
 setClass("ResDailyMeanStatMetabo",
          representation = representation(
@@ -27,7 +28,8 @@ setClass("ResDailyMeanStatMetabo",
            lmeRes = "lme",
            tukeyPairs = "TukeyHSD",
            statLog = "logical",
-           timWind = "numeric"
+           timWind = "numeric",
+           cumul = "logical"
          ))
 #' Constructor for ResStatMetabo, perform a mixed linear statistical test
 #' @param anMetData S4 object of AnalysisMetaboData
@@ -39,16 +41,18 @@ setClass("ResDailyMeanStatMetabo",
 #' @param meanAnimal true if the mean is applied onto the animal, otherwise only on time window
 #' @param statLog if TRUE, log10 is applied to observation (after normalization) for statistical analysis
 #' @param timWind time window (in days) on which model is applied
+#' @param cumul last minus first value in time window instead of mean
 #' @export
 setMethod(  f="initialize",
            signature = "ResDailyMeanStatMetabo",
-           definition = function(.Object,anMetData,observation,norm = NULL,group,control = "control",hourWin = c(8,20),statLog=F,timWind = c()){
+           definition = function(.Object,anMetData,observation,norm = NULL,group,control = "control",hourWin = c(8,20),statLog=F,timWind = c(), cumul = F){
              .Object@statLog = statLog
              if (is.null(norm)){.Object@norm = character(0)} else {.Object@norm = norm}
              .Object@hourWin = hourWin
              .Object@timWind = timWind
              .Object@group = group
              .Object@observation = observation
+             .Object@cumul = cumul
              if (class(anMetData) != "AnalysisMetaboData"){stop("AnMetData is not AnalysisMetaboData")}
              if (!is.element(observation,names(anMetData@data))){stop("Observation not found")}
              if (!is.element(group,names(anMetData@data))){stop("Group not found")}
@@ -71,7 +75,12 @@ setMethod(  f="initialize",
              }
              dataDF$absolutDay = as.integer((unclass(dataDF$MyTime)/3600)/24)
               dataDF4Lm = do.call(rbind,
-               by(dataDF,dataDF$Animal,function(subData){data.frame(Group = subData$Group[1],meanObs = mean(subData$Observation[which(subData$activity == 1)]))}))
+               by(dataDF,dataDF$Animal,function(subData){if (cumul) {
+                 subDataObs = subData$Observation[which(subData$activity == 1)]
+                 data.frame(Group = subData$Group[1],meanObs = subDataObs[length(subDataObs)] - subDataObs[1])
+               } else {
+                 data.frame(Group = subData$Group[1],meanObs = mean(subData$Observation[which(subData$activity == 1)]))}
+                 }))
               if (statLog) {dataDF4Lm$meanObs = log10(dataDF4Lm$meanObs)}
              .Object@lmRes = lm(meanObs ~ Group,data = dataDF4Lm)
                dataDF4Lme = do.call(rbind,
@@ -106,14 +115,14 @@ setMethod( f="metaboDailyPlot",
             pairwisePval=t(x@tukeyPairs$Group[,4,drop=F])
             names(pairwisePval) = row.names(x@tukeyPairs$Group)
             if (pvalStar) {
-            ListSignif = (sapply(1:length(pairwisePval),function(index){
+            ListSignif = (lapply(1:length(pairwisePval),function(index){
               if(pairwisePval[index] < 0.0001){return(c("****",strsplit(names(pairwisePval)[index],split = "-")[[1]]))}
               else if(pairwisePval[index] < 0.001){return(c("***",strsplit(names(pairwisePval)[index],split = "-")[[1]]))}
               else if(pairwisePval[index] < 0.01){return(c("**",strsplit(names(pairwisePval)[index],split = "-")[[1]]))}
               else if(pairwisePval[index] < 0.05){return(c("*",strsplit(names(pairwisePval)[index],split = "-")[[1]]))}
               else {return(c())}
             }))} else {
-              ListSignif=(sapply(1:length(pairwisePval),function(index){
+              ListSignif=(lapply(1:length(pairwisePval),function(index){
                 if(pairwisePval[index] < 0.05){return(c(paste("p=",format(pairwisePval[index],digits = 2),sep=""),strsplit(names(pairwisePval)[index],split = "-")[[1]]))}
                 else {return(c())}
             }))}
