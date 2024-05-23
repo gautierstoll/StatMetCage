@@ -85,8 +85,14 @@ setMethod(  f="initialize",
              .Object@lmRes = lm(meanObs ~ Group,data = dataDF4Lm)
                dataDF4Lme = do.call(rbind,
                                    by(dataDF,dataDF[c('Animal','absolutDay')],
-                                      function(subData){data.frame(Group = subData$Group[1],Animal = subData$Animal[1],
-                                                                  meanObs = mean(subData$Observation[which(subData$activity == 1)],na.rm=T))}))
+                                      function(subData){
+                                        if (cumul) {
+                                          subDataObs = subData$Observation[which(subData$activity == 1)]
+                                          data.frame(Group = subData$Group[1],meanObs = subDataObs[length(subDataObs)] - subDataObs[1])
+                                        } else {
+                                        data.frame(Group = subData$Group[1],Animal = subData$Animal[1],
+                                                                  meanObs = mean(subData$Observation[which(subData$activity == 1)],na.rm=T))}
+                                        }))
                if (statLog) {dataDF4Lme$meanObs = log10(dataDF4Lme$meanObs)}
                
               .Object@lmeRes = nlme::lme(meanObs ~ Group,random = ~ 1|Animal,data = dataDF4Lme[which(is.finite(dataDF4Lme$meanObs)),])
