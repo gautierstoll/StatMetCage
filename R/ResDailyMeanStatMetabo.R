@@ -88,7 +88,8 @@ setMethod(  f="initialize",
                                       function(subData){
                                         if (cumul) {
                                           subDataObs = subData$Observation[which(subData$activity == 1)]
-                                          data.frame(Group = subData$Group[1],meanObs = subDataObs[length(subDataObs)] - subDataObs[1])
+                                          data.frame(Group = subData$Group[1],Animal = subData$Animal[1],
+                                                     meanObs = subDataObs[length(subDataObs)] - subDataObs[1])
                                         } else {
                                         data.frame(Group = subData$Group[1],Animal = subData$Animal[1],
                                                                   meanObs = mean(subData$Observation[which(subData$activity == 1)],na.rm=T))}
@@ -117,7 +118,7 @@ setGeneric(
 setMethod( f="metaboDailyPlot",
           signature = "ResDailyMeanStatMetabo",
           definition = function(x,signif=T,pvalStar = T,mainTitle = "",cex.axis.lab=1){
-            plotDf = x@lmRes$model
+            plotDf = x@lmeRes$data
             pairwisePval=t(x@tukeyPairs$Group[,4,drop=F])
             names(pairwisePval) = row.names(x@tukeyPairs$Group)
             if (pvalStar) {
