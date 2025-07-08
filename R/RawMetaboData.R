@@ -1,6 +1,9 @@
 #' Class of raw data parsing
-#' @slot data the data frame of raw data
+#' @slot Date start recording date
+#' @slot Batch Batch ID of the recording
+#' @slot Device Device model
 #' @slot header the rest of information contained in raw data file
+#' @slot data the data frame of raw data, one line is a measure, it is sort by animal
 #' @export
 setClass(Class = "RawMetaboData",
          representation = representation(
