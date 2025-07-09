@@ -7,8 +7,11 @@
 #' @export
 setClass(Class = "RawMetaboData",
          representation = representation(
-           data = "data.frame",
-           header = "character"
+           Date = "Date",
+           Batch = "character",
+           Device = "character",
+           header = "data.frame",
+           data = "data.frame"
          ),
          validity = function(object){
            if (length(object@data) == 0){
