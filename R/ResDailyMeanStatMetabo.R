@@ -1,4 +1,8 @@
 #' @include AnalysisMetaboData.R
+library("rstatix") # add for ResDailyMeanStatMetabo2
+library("tidyverse") # add for ResDailyMeanStatMetabo2
+library("ggplot2") # add for ResDailyMeanStatMetabo2
+library("ggpubr") # add for ResDailyMeanStatMetabo2
 NULL
 setOldClass("lm")
 setOldClass("lme")
@@ -13,10 +17,13 @@ NULL
 #' @slot hourWin window (in hours) for applying mean
 #' @slot lmRes result of linear model applied on mean by animals
 #' @slot lmeRes result of linear mixed model applied on mean by hourWin
+#' @slot lmeRes2 result of linear mixed model applied on mean by hourWin development
 #' @slot tukeyPairs result of Tukey test on lmRes
 #' @slot statLog if TRUE, log10 is applied to observation (after normalization) for statistical analysis
 #' @slot timWind time window (in days) on which model is applied
 #' @slot cumul last minus first value in time window instead of mean
+#' @data all data in raw format
+#' @dataProcess all processed data
 #' @export
 setClass("ResDailyMeanStatMetabo",
          representation = representation(
@@ -26,11 +33,16 @@ setClass("ResDailyMeanStatMetabo",
            hourWin = "numeric",
            lmRes = "lm",
            lmeRes = "lme",
+           lmeRes2 = "lme",
            tukeyPairs = "TukeyHSD",
            statLog = "logical",
            timWind = "numeric",
-           cumul = "logical"
+           cumul = "logical",
+           data = "data.frame",
+           dataProcess = "data.frame"
          ))
+
+
 #' Constructor for ResStatMetabo, perform a mixed linear statistical test
 #' @param anMetData S4 object of AnalysisMetaboData
 #' @param observation column of anMetData used for analysis
@@ -42,6 +54,8 @@ setClass("ResDailyMeanStatMetabo",
 #' @param statLog if TRUE, log10 is applied to observation (after normalization) for statistical analysis
 #' @param timWind time window (in days) on which model is applied
 #' @param cumul last minus first value in time window instead of mean
+#' @data all data in raw format
+#' @dataProcess all processed data
 #' @export
 setMethod(  f="initialize",
            signature = "ResDailyMeanStatMetabo",
@@ -74,6 +88,7 @@ setMethod(  f="initialize",
                dataDF$activity = c(0,1)[as.integer(((unclass(dataDF$MyTime)/3600)%%24 > hourWin[1]) | ((unclass(dataDF$MyTime)/3600)%%24 < hourWin[2])) + 1]
              }
              dataDF$absolutDay = as.integer((unclass(dataDF$MyTime)/3600)/24)
+             dataDF <- dataDF %>% as_tibble %>% mutate(RelDay2 = as.factor(floor(RelDay))) # Absolut experiment days 
               dataDF4Lm = do.call(rbind,
                by(dataDF,dataDF$Animal,function(subData){if (cumul) {
                  subDataObs = subData$Observation[which(subData$activity == 1)]
@@ -87,18 +102,54 @@ setMethod(  f="initialize",
                                    by(dataDF,dataDF[c('Animal','absolutDay')],
                                       function(subData){
                                         if (cumul) {
-                                          subDataObs = subData$Observation[which(subData$activity == 1)]
-                                          data.frame(Group = subData$Group[1],Animal = subData$Animal[1],
-                                                     meanObs = subDataObs[length(subDataObs)] - subDataObs[1])
+                                          subDataObs <- subData$Observation[which(subData$activity == 1)]
+                                          data.frame(Group = subData$Group[1],
+                                                     Animal = subData$Animal[1],
+                                                     Days = subData$absolutDay[1],
+                                                     meanObs = subDataObs[length(subDataObs)] - subDataObs[1],
+                                                     RelDay = subData$RelDay2[1])
                                         } else {
-                                        data.frame(Group = subData$Group[1],Animal = subData$Animal[1],
-                                                                  meanObs = mean(subData$Observation[which(subData$activity == 1)],na.rm=T))}
+                                          data.frame(Group = subData$Group[1],
+                                                     Animal = subData$Animal[1],
+                                                     Days = subData$absolutDay[1],
+                                                     meanObs = mean(subData$Observation[which(subData$activity == 1)],na.rm=T),
+                                                     RelDay = subData$RelDay2[1])
+                                        }
+                                      }))
+               
+               dataDF4Lme2 = do.call(rbind,
+                                     by(dataDF,dataDF[c('Animal','RelDay2')],
+                                        function(subData){
+                                          if (subData$Animal[1] == 14){test <<- subData}
+                                          if (cumul) {
+                                            subDataObs <- subData$Observation[which(subData$activity == 1)]
+                                            data.frame(Group = subData$Group[1],
+                                                       Animal = subData$Animal[1],
+                                                       Days = subData$absolutDay[1],
+                                                       meanObs = subDataObs[length(subDataObs)] - subDataObs[1],
+                                                       RelDay = subData$RelDay2[1])
+                                            
+                                          } else if(grepl("delta", observation)) {
+                                            data.frame(Group = subData$Group[1],
+                                                       Animal = subData$Animal[1],
+                                                       Days = subData$absolutDay[1],
+                                                       meanObs = sum(subData$Observation[which(subData$activity == 1)],na.rm=T),
+                                                       RelDay = subData$RelDay2[1])
+                                          } else {
+                                            data.frame(Group = subData$Group[1],
+                                                       Animal = subData$Animal[1],
+                                                       Days = subData$absolutDay[1],
+                                                       meanObs = mean(subData$Observation[which(subData$activity == 1)],na.rm=T),
+                                                       RelDay = subData$RelDay2[1])
+                                          }
                                         }))
+               
                if (statLog) {dataDF4Lme$meanObs = log10(dataDF4Lme$meanObs)}
-               
-              .Object@lmeRes = nlme::lme(meanObs ~ Group,random = ~ 1|Animal,data = dataDF4Lme[which(is.finite(dataDF4Lme$meanObs)),])
-              .Object@tukeyPairs = TukeyHSD(aov(meanObs ~ Group,data = dataDF4Lm))
-               
+               .Object@lmeRes = nlme::lme(meanObs ~ Group,random = ~ 1|Animal,data = dataDF4Lme[which(is.finite(dataDF4Lme$meanObs)),])
+               .Object@lmeRes2 = nlme::lme(meanObs ~ Group,random = ~ 1|Animal,data = dataDF4Lme2[which(is.finite(dataDF4Lme2$meanObs)),])
+               .Object@tukeyPairs = TukeyHSD(aov(meanObs ~ Group,data = dataDF4Lm))
+               .Object@data <- dataDF
+               .Object@dataProcess <- dataDF4Lme2
              return(.Object)
            })
 
