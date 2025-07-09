@@ -217,3 +217,32 @@ setMethod( f="metaboDailyPlot",
             }
             beeswarm::beeswarm(meanObs ~ Group,data=plotDf,add=T,cex=.5,col="red")
           })
+
+
+setGeneric(
+  name = "metaboDailyPlot2",
+  def = function(x,signif,pvalStar = T ,mainTitle = ""){standardGeneric("metaboDailyPlot2")}
+)
+
+#' Plot time dependant metabolic data V2
+#' @param x ResDailyMeanStatMetabo S4 object
+#' @param signif true for significance pairwise annotation
+#' @param pvalStar significant annotation with stars instead of p-value
+#' @param type type of plot: data, data.model or model
+#' @export
+setMethod( f="metaboDailyPlot2",
+           signature = "ResDailyMeanStatMetabo",
+           definition = function(x,signif=T,pvalStar = T,mainTitle = ""){
+             plotDf = x@lmeRes2$data
+             plotDf_stat_0 <- x@dataProcess  %>% tukey_hsd( formula = meanObs ~ Group) %>% add_y_position
+             plotDf_stat_1 <- x@dataProcess %>% group_by(RelDay) %>% tukey_hsd(formula = meanObs ~ Group) %>% add_y_position
+             gg <- ggplot(plotDf, aes(x = Group, y = meanObs, color = Group)) +
+               geom_boxplot(outlier.shape = NA) +
+               geom_point(position = position_jitterdodge()) +
+               ggtitle(mainTitle) +
+               stat_anova_test() +
+               theme_bw()
+             
+             print(gg + stat_pvalue_manual(plotDf_stat_0))
+             print(gg + stat_pvalue_manual(plotDf_stat_1) + facet_wrap(~ RelDay))
+           })
