@@ -14,6 +14,9 @@ setClass(Class = "RawMetaboData",
            data = "data.frame"
          ),
          validity = function(object){
+           if (length(object@header) == 0){
+             stop("Empty header")
+           }
            if (length(object@data) == 0){
              stop("Empty data")
            }
