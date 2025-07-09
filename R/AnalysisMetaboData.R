@@ -12,6 +12,7 @@ setClass("AnalysisMetaboData",
            animal = "character",
            actSwitchHour = "numeric"
          ))
+
 #' Constructor of AnalysisMetaboData
 #' @param rawData S4 object of RawMetaboData
 #' @param date name of date column in raw data
@@ -57,19 +58,24 @@ setMethod(f="initialize",
              .Object@data = do.call(rbind,by(dataDF,dataDF[[animal]],function(subDF){
                subAnimal = unique(unlist(subDF[[animal]]))
                subAnnot = annotation[which(annotation$Animal == subAnimal),]
-               subAnnot4DF = as.data.frame(apply(subAnnot[1,!is.element(names(subAnnot),c("Animal","Date","Time"))],2,
-                                              function(x){rep(x,length(subDF[,1]))}),stringsAsFactors = F)
+               #
+               # No more usefull due to Class change
+               #
+               # subAnnot4DF = as.data.frame(apply(subAnnot[1,!is.element(names(subAnnot),c("Animal","Date","Time"))],2,
+               #                                function(x){rep(x,length(subDF[,1]))}),stringsAsFactors = F)
+               # subAnnot4DF <- subAnnot
+               #
                if (length(subAnnot[,1]) == 1){
-                 for(nGr in setdiff(names(subAnnot4DF),annotGroups)){ subAnnot4DF[[nGr]] = as.numeric(unlist(subAnnot4DF[[nGr]]))}
+                 for(nGr in setdiff(names(subAnnot),annotGroups)){ subAnnot[[nGr]] = as.numeric(unlist(subAnnot[[nGr]]))}
                } else {
                   subAnnot$MyTime = lubridate::dmy_hm(paste(unlist(subAnnot$Date),unlist(subAnnot$Time),sep=" "))
                   subAnnot$RelDay = unclass(subAnnot$MyTime) - unclass(subDF$MyTime[1])
-                  for(nGr in setdiff(names(subAnnot4DF),annotGroups)){ subAnnot4DF[[nGr]] = spline(subAnnot$RelDay,unlist(subAnnot[[nGr]]),xout = subDF$RelDay)$y}
+                  for(nGr in setdiff(names(subAnnot),annotGroups)){ subAnnot[[nGr]] = spline(subAnnot$RelDay,unlist(subAnnot[[nGr]]),xout = subDF$RelDay)$y}
                }
-               names(subAnnot4DF) = lapply(names(subAnnot4DF),function(name){
+               names(subAnnot) = lapply(names(subAnnot),function(name){
                  if (is.element(name,names(subDF))) {return(paste(name,"annot",sep = "_"))}else(return(name))})
     
-               return(cbind(subDF,subAnnot4DF))}))}
+               return(cbind(subDF,subAnnot))}))}
              else {.Object@data = dataDF}
             .Object@animal = animal
             .Object@actSwitchHour = actSwitchHour 
