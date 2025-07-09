@@ -25,8 +25,8 @@ setClass(Class = "RawMetaboData",
 )
 #' Constructor of class RawMetaboData
 #'
-#' @param fileName .csv file containing raw data
-#' @param sepCSBV column separator for .csv file
+#' @param fileName .csv file(s) containing raw data
+#' @param sepCSV column separator for .csv file, "," by default
 #' @export
 #'
 setMethod(f="initialize",
