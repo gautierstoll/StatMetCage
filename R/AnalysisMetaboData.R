@@ -90,6 +90,7 @@ setGeneric(
 
 #' Plot time dependant metabolic  raw data
 #' @param x AnalysisMetaboData S4 object
+#' @param observation parameter to be plotted
 #' @param type type of plot: data, mean.sd
 #' @param group Group for coloring and/or mean/sd
 #' @export
@@ -116,4 +117,28 @@ setMethod(f="metaboRawPlot",
             }
             xMinMax = c(min(x@data$RelDay),max(x@data$RelDay))
             legend(x=xMinMax[1],y=yMinMax[2],legend = AnnotGroups,col = unique(listCol),pch=1) ## col may not be correct
+          })
+
+# Second version of metaboRawPlot #####
+# Based on ggplot2
+setGeneric(
+  name = "metaboRawPlot2",
+  def = function(x,observation,group = "Group"){standardGeneric("metaboRawPlot2")}
+)
+
+#' Plot time dependant metabolic  raw data
+#' @param x AnalysisMetaboData S4 object
+#' @param observations parameter to be plotted
+#' @param group Group for coloring and/or mean/sd
+#' @export
+setMethod(f="metaboRawPlot2",
+          signature = "AnalysisMetaboData",
+          definition = function(x,observation,group = "Group"){
+            gg <- ggplot(x@data %>% filter(!is.na(get(observation))), aes(x = RelDay, y = get(observation), color = get(group)))+
+              geom_line(alpha = 0.3, if('Animal No.' %in% colnames(x@data)){aes(group = `Animal No.`)}) +
+              labs(y = observation, color = group) +
+              ggtitle(observation) +
+              geom_smooth(method = "loess", formula = 'y ~ x', span = 0.01)+
+              theme_bw()
+            return(gg)
           })
