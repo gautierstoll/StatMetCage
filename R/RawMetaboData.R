@@ -24,7 +24,7 @@ setClass(Class = "RawMetaboData",
          }
 )
 #' Constructor of class RawMetaboData
-#'
+#' If no fileName submit create an empty RawMetaboData object
 #' @param fileName .csv file(s) containing raw data
 #' @param sepCSV column separator for .csv file, by default is ";"
 #' @param sepDec Decimal separator for .csv file, by default is ","
@@ -33,6 +33,13 @@ setClass(Class = "RawMetaboData",
 setMethod(f="initialize",
           signature = "RawMetaboData",
           definition = function(.Object,fileName,sepCSV = ";",sepDec=","){
+            if (missingArg(fileName)){
+              .Object@Date = lubridate::NA_Date_
+              .Object@Batch = NA_character_
+              .Object@Device = NA_character_
+              .Object@data = data.frame(matrix(0,0,0))
+              .Object@header = data.frame(matrix(0,0,0))
+            } else {
             Data=scan(fileName,what="",sep="\n",dec=sepDec,blank.lines.skip = FALSE)
             Data <- Data[Data != ""] # Remove possible blank lines
             tmpFirst <- grep("Date;Time", Data, useBytes = TRUE) # Find Data table start with Date;Time
@@ -58,6 +65,6 @@ setMethod(f="initialize",
             .Object@header <- .Object@header %>% as_tibble %>%
               mutate_at(3, function(x) as.numeric(gsub(",",".", x))) %>%
               mutate(Date = DataDF[1,1], Time = DataDF[1,2])
-            
+            }
             return(.Object)
           })
