@@ -134,8 +134,7 @@ setGeneric(
 setMethod(f="metaboRawPlot2",
           signature = "AnalysisMetaboData",
           definition = function(x,observation,group = "Group"){
-            tmp <- x@data %>% filter(!is.na(get(observation)))
-            gg <- ggplot(tmp, aes(x = RelDay, y = get(observation), color = get(group)))+
+            gg <- ggplot(x@data %>% filter(!is.na(get(observation))), aes(x = RelDay, y = get(observation), color = get(group)))+
               geom_line(alpha = 0.3, if('Animal No.' %in% colnames(x@data)){aes(group = `Animal No.`)}) +
               labs(y = observation, color = group) +
               ggtitle(observation) +
