@@ -1,0 +1,125 @@
+---
+title: "StatMetaCage's example script"
+autor: "Vincent Carbonnier"
+project: https://github.com/gautierstoll/StatMetCage
+date: today()
+output: html_notebook
+---
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+# StatMetaCage's example script
+## Install
+
+First of all we need to load the libraries
+The first chunk install all needed libraries
+```{r PackagesInstallation, include=TRUE}
+Libraries <- c("BiocManager", "tidyverse", "tcltk")
+lapply(Libraries, function(library) {if(!require(library, character.only = TRUE)){install.packages(library)}})
+```
+
+# Main code 
+## Loading packages
+Main goal is to maintain this to only one line
+```{r LoadPackages}
+library(StatMetCage)
+source("~/Documents/Git/StatMetCage/R/RawMetaboData.R")
+source("~/Documents/Git/StatMetCage/R/AnalysisMetaboData.R")
+source("~/Documents/Git/StatMetCage/R/ResDailyMeanStatMetabo.R")
+```
+
+
+## Data load
+We select all TSE PhenoMaster files in a folder (maintain Ctrl+clic on the file)
+We change the working directory base on the first file that you had select
+All files are load in RawMetaboData object
+```{r LoadTable }
+FileList <- tk_choose.files()
+knitr::opts_knit$set(root.dir = paste0(str_split(FileList[1], "/")[[1]][1:length(str_split(FileList[1], "/")[[1]])-1],collapse = "/"))
+# setwd(paste0(str_split(FileList[1], "/")[[1]][1:length(str_split(FileList[1], "/")[[1]])-1],collapse = "/"))
+
+RawMetaboData <- sapply(FileList, function(File){
+  tmp <- new("RawMetaboData",fileName = File,sepCSV = ";")
+  tmp@data <- tmp@data[which(tmp@data$RER != "-"),]
+  return(tmp)
+})
+```
+
+The RawMetaboData is a list of all our files
+We regroup all files in one object
+```{r}
+RawMetaFull <- new("RawMetaboData")
+RawMetaFull@header <- do.call("rbind", lapply(RawMetaboData, function(data) data@header))
+RawMetaFull@data <- do.call("rbind", lapply(RawMetaboData, function(data) data@data))
+
+RawMetaFull@data = RawMetaFull@data %>% mutate_at(vars(!contains("Date") & !contains("Time")), function(x) as.numeric(gsub(",",".",x)))
+RawMetaFull@data <- RawMetaFull@data %>%
+  group_by(`Animal No.`) %>%
+  mutate(deltaDrink = if("Drink" %in% names(.)){Drink - lag(Drink)}) %>%
+  mutate(deltaFeed = if("Feed" %in% names(.)) {Feed - lag(Feed)})
+
+```
+
+We select Pour parameters of interest
+AnalysisMetaboData realized analysis base on metadata informations
+```{r}
+## extract annotation table from tables
+colnames(RawMetaFull@header) <- c("Box","Animal","Weight","Treat","Text2","Text3", "Date", "Time")
+
+## Combine annotation
+AnnotFull = RawMetaFull@header
+
+## Define fields of interest
+FieldsOfInterest = names(RawMetaFull@data)[c(14,17,20,21,40,41,24:39)]
+FieldsOfInterest <- c(FieldsOfInterest,"deltaFeed","deltaDrink")
+
+## Instanciate an analysis object
+AnalysisFull = new("AnalysisMetaboData",rawData = RawMetaFull,
+                   obs = FieldsOfInterest,annotation = AnnotFull,annotGroups = c("Treat"),actSwitchHour = 7)
+
+time <- data.frame(AnalysisFull@data$MyTime, AnalysisFull@data$RelDay)
+print("Full Analysis")
+```
+
+We plot the results on each parameter of interest
+All plot could be print in a pdf file
+```{r}
+
+# pdf.options(useDingbats = TRUE)
+# pdf(file="ResFull_all_split.pdf", width = 12, height = 12)
+## loop over fields of interest
+# metaboRawPlot(AnalysisFull,observation = "Feed",group = "Treat")
+for (Field in FieldsOfInterest) {
+  print(Field)
+  metaboRawPlot2(AnalysisFull, observation = Field, group = "Treat")
+  ## Nights
+  tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull,observation = Field,
+                    group = "Treat",hourWin = c(19,7),timWind=c(0,7),control = "c",
+                    cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
+  
+  # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," night",
+  #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
+  #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+  
+  metaboDailyPlot2(tmpResDaily,mainTitle = paste(Field," night",
+                                                 "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
+                                                 ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+  
+  # Days
+  tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull,observation = Field,
+                    group = "Treat",hourWin = c(7,19),timWind=c(0, 7),control = "c",
+                    cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
+  
+  
+  # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," day",
+  #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
+  #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+  
+  metaboDailyPlot2(tmpResDaily,mainTitle = paste(Field," day",
+                                                 "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
+                                                 ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+  
+}
+# dev.off()
+```
+
