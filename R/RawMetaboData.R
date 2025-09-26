@@ -23,6 +23,8 @@ setClass(Class = "RawMetaboData",
            return(TRUE)
          }
 )
+
+
 #' Constructor of class RawMetaboData
 #' If no fileName submit create an empty RawMetaboData object
 #' @param fileName .csv file(s) containing raw data
