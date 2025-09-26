@@ -1,5 +1,6 @@
 #' @include RawMetaboData.R
-NULL
+library(ggplot2)
+library(directlabels)
 
 #' Class of data for statistical analysis
 #' @slot data data frame that contains animal, specified observations, absolute time (my time), floating point day (RelDay), day activity (Sun), sine function based on day activity, squared floating point day (SqRelDay)
@@ -29,7 +30,7 @@ setMethod(f="initialize",
                                 rawData,
                                 date = "Date",
                                 time = "Time",
-                                actSwitchHour = "6",
+                                actSwitchHour = 6,
                                 animal = "Animal No.",
                                 obs = "VO2(3)",
                                 annotation = character(0),
@@ -45,7 +46,7 @@ setMethod(f="initialize",
                                        function(SData){return((unclass(SData$MyTime) - unclass(SData$MyTime)[1])/(24*3600))}))
             dataDF$Sun = c("day","night")[as.integer((((unclass(dataDF$MyTime)/3600)%%24-actSwitchHour)/12)%%2)+1] ## same as activity
             dataDF$OscillActivity = sin((unclass(dataDF$MyTime)/3600-actSwitchHour)/12*pi)
-              
+            
             dataDF$SqRelDay = dataDF$RelDay^2
             if (length(annotation)>0){
               if (!is.element("Animal",names(annotation))){stop("No Animal column in annotation")}
@@ -55,28 +56,29 @@ setMethod(f="initialize",
                 stop("Mission group annotation columns in annotation")}
               if (length(intersect(unique(unlist(dataDF[[animal]])),unique(annotation$Animal))) <
                   length(unique(unlist(dataDF[[animal]])))) {stop("Missing animals in annotation")}
-             .Object@data = do.call(rbind,by(dataDF,dataDF[[animal]],function(subDF){
-               subAnimal = unique(unlist(subDF[[animal]]))
-               subAnnot = annotation[which(annotation$Animal == subAnimal),]
-               #
-               # No more usefull due to Class change
-               #
-               # subAnnot4DF = as.data.frame(apply(subAnnot[1,!is.element(names(subAnnot),c("Animal","Date","Time"))],2,
-               #                                function(x){rep(x,length(subDF[,1]))}),stringsAsFactors = F)
-               # subAnnot4DF <- subAnnot
-               #
-               if (length(subAnnot[,1]) == 1){
-                 for(nGr in setdiff(names(subAnnot),annotGroups)){ subAnnot[[nGr]] = as.numeric(unlist(subAnnot[[nGr]]))}
-               } else {
+              .Object@data = do.call(rbind,by(dataDF,dataDF[[animal]],function(subDF){
+                subAnimal = unique(unlist(subDF[[animal]]))
+                subAnnot <- annotation[which(annotation$Animal == subAnimal),]
+                # subAnnot4DF = as.data.frame(apply(subAnnot[1,!is.element(names(subAnnot),c("Animal","Date","Time"))],2,
+                                                  # function(x){rep(x,length(subDF[,1]))}),stringsAsFactors = F)
+                subAnnot4DF <- subAnnot
+                if (length(subAnnot[,1]) == 1){
+                  # for(nGr in setdiff(names(subAnnot4DF),annotGroups)){ subAnnot4DF[[nGr]] = as.numeric(unlist(subAnnot4DF[[nGr]]))}
+                } else {
                   subAnnot$MyTime = lubridate::dmy_hm(paste(unlist(subAnnot$Date),unlist(subAnnot$Time),sep=" "))
                   subAnnot$RelDay = unclass(subAnnot$MyTime) - unclass(subDF$MyTime[1])
-                  for(nGr in setdiff(names(subAnnot),annotGroups)){ subAnnot[[nGr]] = spline(subAnnot$RelDay,unlist(subAnnot[[nGr]]),xout = subDF$RelDay)$y}
-               }
-               names(subAnnot) = lapply(names(subAnnot),function(name){
-                 if (is.element(name,names(subDF))) {return(paste(name,"annot",sep = "_"))}else(return(name))})
-    
-               return(cbind(subDF,subAnnot))}))}
-             else {.Object@data = dataDF}
+                  for(nGr in setdiff(names(subAnnot4DF),annotGroups)){
+                    subAnnot4DF[[nGr]] = spline(subAnnot$RelDay,unlist(subAnnot[[nGr]]),xout = subDF$RelDay)$y
+                    }
+                }
+                names(subAnnot4DF) = lapply(names(subAnnot4DF),function(name){
+                  if (is.element(name,names(subDF))) {return(paste(name,"annot",sep = "_"))}else(return(name))})
+                subDF <- subDF
+                subAnnot4DF <- subAnnot4DF
+                return(cbind(subDF,subAnnot4DF))}
+              ))
+              }
+            else {.Object@data = dataDF}
             .Object@animal = animal
             .Object@actSwitchHour = actSwitchHour 
             return(.Object)
@@ -90,7 +92,7 @@ setGeneric(
 
 #' Plot time dependant metabolic  raw data
 #' @param x AnalysisMetaboData S4 object
-#' @param observation parameter to be plotted
+#' @param observation Name of observation column
 #' @param type type of plot: data, mean.sd
 #' @param group Group for coloring and/or mean/sd
 #' @export
@@ -119,26 +121,28 @@ setMethod(f="metaboRawPlot",
             legend(x=xMinMax[1],y=yMinMax[2],legend = AnnotGroups,col = unique(listCol),pch=1) ## col may not be correct
           })
 
-# Second version of metaboRawPlot #####
-# Based on ggplot2
+
 setGeneric(
   name = "metaboRawPlot2",
-  def = function(x,observation,group = "Group"){standardGeneric("metaboRawPlot2")}
+  def = function(x,observation,group = "Group",labels = NULL){standardGeneric("metaboRawPlot2")}
 )
+
 
 #' Plot time dependant metabolic  raw data
 #' @param x AnalysisMetaboData S4 object
-#' @param observations parameter to be plotted
+#' @param observation Name of observation values
 #' @param group Group for coloring and/or mean/sd
+#' @param labels Labels
 #' @export
 setMethod(f="metaboRawPlot2",
           signature = "AnalysisMetaboData",
-          definition = function(x,observation,group = "Group"){
+          definition = function(x,observation,group = "Group",labels = NULL){
             gg <- ggplot(x@data %>% filter(!is.na(get(observation))), aes(x = RelDay, y = get(observation), color = get(group)))+
-              geom_line(alpha = 0.3, if('Animal No.' %in% colnames(x@data)){aes(group = `Animal No.`)}) +
+              geom_line(alpha = 0.3, aes(group = `Animal No.`)) +
               labs(y = observation, color = group) +
               ggtitle(observation) +
               geom_smooth(method = "loess", formula = 'y ~ x', span = 0.01)+
-              theme_bw()
+              if (!is.null(labels)) {geom_dl(aes(label = get(labels)), method = list(dl.trans(x = x + .2), "last.points"))}
             print(gg)
           })
+
