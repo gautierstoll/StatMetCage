@@ -1,6 +1,7 @@
 #' @include RawMetaboData.R
 library("ggplot2")
 library("directlabels")
+NULL
 
 #' Class of data for statistical analysis
 #' @slot data data frame that contains animal, specified observations, absolute time (my time), floating point day (RelDay), day activity (Sun), sine function based on day activity, squared floating point day (SqRelDay)
