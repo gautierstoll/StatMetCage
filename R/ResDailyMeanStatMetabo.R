@@ -71,7 +71,7 @@ setMethod(  f="initialize",
              if (!is.element(observation,names(anMetData@data))){stop("Observation not found")}
              if (!is.element(group,names(anMetData@data))){stop("Group not found")}
              if (!is.element(control,unlist(anMetData@data[group]))){stop("Control ",control," not found")}
-             if (length(timWind) != 2){stop("Invalid time window")}
+             if (length(timWind) != 2){ifelse(length(timWind) == 0, timWind = c(8,20), stop("Invalid time window"),}
              dataDF = anMetData@data[,c(anMetData@animal,observation,group,"MyTime","RelDay","Sun")]
              names(dataDF)[1:3] = c("Animal","Observation","Group")
              dataDF$Observation = as.numeric(gsub(",",".",dataDF$Observation,fixed=T))
