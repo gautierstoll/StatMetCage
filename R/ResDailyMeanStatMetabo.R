@@ -1,8 +1,8 @@
 #' @include AnalysisMetaboData.R
-library("rstatix") # add for ResDailyMeanStatMetabo2
-library("tidyverse") # add for ResDailyMeanStatMetabo2
-library("ggplot2") # add for ResDailyMeanStatMetabo2
-library("ggpubr") # add for ResDailyMeanStatMetabo2
+#' @import rstatix # add for ResDailyMeanStatMetabo2
+#' @import tidyverse # add for ResDailyMeanStatMetabo2
+#' @import ggplot2 # add for ResDailyMeanStatMetabo2
+#' @import ggpubr # add for ResDailyMeanStatMetabo2
 NULL
 setOldClass("lm")
 setOldClass("lme")
