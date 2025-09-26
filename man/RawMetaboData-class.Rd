@@ -10,8 +10,14 @@ Class of raw data parsing
 \section{Slots}{
 
 \describe{
-\item{\code{data}}{the data frame of raw data}
+\item{\code{Date}}{start recording date}
+
+\item{\code{Batch}}{Batch ID of the recording}
+
+\item{\code{Device}}{Device model}
 
 \item{\code{header}}{the rest of information contained in raw data file}
+
+\item{\code{data}}{the data frame of raw data, one line is a measure, it is sort by animal}
 }}
 

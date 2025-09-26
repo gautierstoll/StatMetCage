@@ -22,6 +22,8 @@ Class for linear modeling of temporal mean
 
 \item{\code{lmeRes}}{result of linear mixed model applied on mean by hourWin}
 
+\item{\code{lmeRes2}}{result of linear mixed model applied on mean by hourWin development}
+
 \item{\code{tukeyPairs}}{result of Tukey test on lmRes}
 
 \item{\code{statLog}}{if TRUE, log10 is applied to observation (after normalization) for statistical analysis}

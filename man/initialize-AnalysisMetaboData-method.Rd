@@ -9,7 +9,7 @@
   rawData,
   date = "Date",
   time = "Time",
-  actSwitchHour = "6",
+  actSwitchHour = 6,
   animal = "Animal No.",
   obs = "VO2(3)",
   annotation = character(0),

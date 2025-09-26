@@ -2,15 +2,19 @@
 % Please edit documentation in R/RawMetaboData.R
 \name{initialize,RawMetaboData-method}
 \alias{initialize,RawMetaboData-method}
-\title{Constructor of class RawMetaboData}
+\title{Constructor of class RawMetaboData
+If no fileName submit create an empty RawMetaboData object}
 \usage{
-\S4method{initialize}{RawMetaboData}(.Object, fileName, sepCSV = ",")
+\S4method{initialize}{RawMetaboData}(.Object, fileName, sepCSV = ";", sepDec = ",")
 }
 \arguments{
-\item{fileName}{.csv file containing raw data}
+\item{fileName}{.csv file(s) containing raw data}
 
-\item{sepCSBV}{column separator for .csv file}
+\item{sepCSV}{column separator for .csv file, by default is ";"}
+
+\item{sepDec}{Decimal separator for .csv file, by default is ","}
 }
 \description{
 Constructor of class RawMetaboData
+If no fileName submit create an empty RawMetaboData object
 }

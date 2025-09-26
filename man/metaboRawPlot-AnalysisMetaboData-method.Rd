@@ -9,6 +9,8 @@
 \arguments{
 \item{x}{AnalysisMetaboData S4 object}
 
+\item{observation}{Name of observation column}
+
 \item{type}{type of plot: data, mean.sd}
 
 \item{group}{Group for coloring and/or mean/sd}
