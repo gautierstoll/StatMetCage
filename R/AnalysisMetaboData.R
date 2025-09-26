@@ -1,6 +1,6 @@
 #' @include RawMetaboData.R
-library("ggplot2")
-library("directlabels")
+#' @import ggplot2
+#' @import directlabels
 NULL
 
 #' Class of data for statistical analysis
