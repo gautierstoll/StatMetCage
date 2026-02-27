@@ -2,20 +2,12 @@ setwd("~/Documents/Git/StatMetCage")
 library(tcltk)
 library(tidyverse)
 library(StatMetCage)
-library(foreach)
-library(doParallel)
+# library(foreach)
+# library(doParallel)
 source("R/RawMetaboData.R")
 source("R/AnalysisMetaboData.R")
 source("R/ResDailyMeanStatMetabo.R")
 
-n_cores <- detectCores()
-cluster <- makeCluster(n_cores)
-registerDoParallel(cluster)
-
-# Do the processing
-foreach(i = 1:1000) %dopar% {
-
-}
 
 
 # load tables #####
@@ -35,6 +27,15 @@ inj_time <- list(dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("2
                  dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:53"),
                  dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:45"),
                  dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:47"))
+
+# inj_time <- list(dmy_hm("18-10-2025 18:38"),dmy_hm("18-10-2025 18:38"),dmy_hm("18-10-2025 18:38"),dmy_hm("18-10-2025 18:44"),
+#                  dmy_hm("18-10-2025 18:46"),dmy_hm("18-10-2025 18:46"),dmy_hm("18-10-2025 18:46"),dmy_hm("18-10-2025 18:45"),
+#                  dmy_hm("20-10-2025 17:55"),dmy_hm("20-10-2025 17:55"),dmy_hm("20-10-2025 17:55"),dmy_hm("20-10-2025 18:02"),
+#                  dmy_hm("20-10-2025 18:05"),dmy_hm("20-10-2025 18:05"),dmy_hm("20-10-2025 18:05"),dmy_hm("20-10-2025 18:04"),
+#                  dmy_hm("23-10-2025 18:00"),dmy_hm("23-10-2025 18:00"),dmy_hm("23-10-2025 18:00"),dmy_hm("23-10-2025 18:05"),
+#                  dmy_hm("23-10-2025 18:08"),dmy_hm("23-10-2025 18:08"),dmy_hm("23-10-2025 18:08"),dmy_hm("23-10-2025 18:07"),
+#                  dmy_hm("28-10-2025 18:00"),dmy_hm("28-10-2025 18:00"),dmy_hm("28-10-2025 18:00"),dmy_hm("28-10-2025 18:05"),
+#                  dmy_hm("28-10-2025 18:07"),dmy_hm("28-10-2025 18:07"),dmy_hm("28-10-2025 18:07"),dmy_hm("28-10-2025 18:06"))
 
 names(inj_time) <- as.character(seq(1,length(inj_time)))
 
@@ -99,7 +100,7 @@ for (Field in FieldsOfInterest[-c(1,2)]) {
   
   ## Nights
   tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
-                    group = "Treat",hourWin = c(19,7),timWind=c(0,7),control = "c",
+                    group = "Treat",hourWin = c(19,7),timWind=c(1.3,2),control = "c",
                     cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
   
   # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," night",
@@ -112,7 +113,7 @@ for (Field in FieldsOfInterest[-c(1,2)]) {
   
   # Days
   tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
-                    group = "Treat",hourWin = c(7,19),timWind=c(0, 7),control = "c",
+                    group = "Treat",hourWin = c(7,19),timWind=c(1.3,2),control = "c",
                     cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
 
 
