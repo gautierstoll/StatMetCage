@@ -2,9 +2,21 @@ setwd("~/Documents/Git/StatMetCage")
 library(tcltk)
 library(tidyverse)
 library(StatMetCage)
+library(foreach)
+library(doParallel)
 source("R/RawMetaboData.R")
 source("R/AnalysisMetaboData.R")
 source("R/ResDailyMeanStatMetabo.R")
+
+n_cores <- detectCores()
+cluster <- makeCluster(n_cores)
+registerDoParallel(cluster)
+
+# Do the processing
+foreach(i = 1:1000) %dopar% {
+
+}
+
 
 # load tables #####
 FileList <- tk_choose.files()
@@ -77,11 +89,14 @@ metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label 
 
 pdf.options(useDingbats = TRUE)
 pdf(file=paste0(today(), "_", "ResFull_all_split","_filter",".pdf"), width = 12, height = 12)
+
 ## loop over fields of interest
 # metaboRawPlot(AnalysisFull,observation = "Feed",group = "Treat")
 for (Field in FieldsOfInterest[-c(1,2)]) {
   print(Field)
+  metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "RelDay")
   metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "UTC_rel")
+  
   ## Nights
   tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
                     group = "Treat",hourWin = c(19,7),timWind=c(0,7),control = "c",

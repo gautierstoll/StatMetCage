@@ -124,9 +124,9 @@ setMethod( f="initialize",
                 dataDF4Lme2 = do.call(rbind,
                                      by(dataDF,dataDF[c('Animal','RelDay2')],
                                         function(subData){
-                                          if (subData$Animal[1] == 14){test <<- subData}
                                           if (cumul) {
-                                            subDataObs <- subData$Observation[which(subData$activity == 1)]
+                                            # subDataObs <- subData$Observation[which(subData$activity == 1)]
+                                            subDataObs <- subData$Observation
                                             data.frame(Group = subData$Group[1],
                                                        Animal = subData$Animal[1],
                                                        Days = subData$absolutDay[1],
@@ -147,8 +147,8 @@ setMethod( f="initialize",
                                                        RelDay = subData$RelDay2[1])
                                           }
                                         }))
-                
-               if (statLog) {dataDF4Lme$meanObs = log10(dataDF4Lme$meanObs)}
+              
+              if (statLog) {dataDF4Lme$meanObs = log10(dataDF4Lme$meanObs)}
               .Object@lmeRes = nlme::lme(meanObs ~ Group,random = ~ 1|Animal,data = dataDF4Lme[which(is.finite(dataDF4Lme$meanObs)),])
               .Object@lmeRes2 = nlme::lme(meanObs ~ Group,random = ~ 1|Animal,data = dataDF4Lme2[which(is.finite(dataDF4Lme2$meanObs)),])
               .Object@tukeyPairs = TukeyHSD(aov(meanObs ~ Group,data = dataDF4Lm))
