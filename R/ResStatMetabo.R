@@ -1,3 +1,6 @@
+# ResStatMetabo ####
+
+## Object res metabo ####
 #' @include AnalysisMetaboData.R
 NULL
 setOldClass("summary.lme")
@@ -102,6 +105,9 @@ setMethod( f="initialize",
             return(.Object)
           })
 
+
+## MetaboPlot ####
+
 setGeneric(
   name = "metaboPlot",
   def = function(x,type = "data",mainTitle = "",cex.axis.lab = 1,inner.title = "",inner.left.pos = NaN){standardGeneric("metaboPlot")})
@@ -183,6 +189,9 @@ setMethod(f="metaboPlot",
               }
           }
 )
+
+## PredictStatMetabo ####
+
 setGeneric(
   name = "predictStatMetabo",
   def = function(object,tPoint,group=""){standardGeneric("predictStatMetabo")}

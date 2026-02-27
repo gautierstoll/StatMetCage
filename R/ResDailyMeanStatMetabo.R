@@ -1,3 +1,7 @@
+# ResDailyMeanStatMetabo ####
+
+## ResDailyMeanStatMetabo ####
+
 #' @include AnalysisMetaboData.R
 library(rstatix)
 library("tidyverse") # add for ResDailyMeanStatMetabo2
@@ -153,6 +157,9 @@ setMethod( f="initialize",
              return(.Object)
            })
 
+
+## metaboDailyPlot ####
+
 setGeneric(
   name = "metaboDailyPlot",
   def = function(x,signif,pvalStar = T ,mainTitle = "",cex.axis.lab = 1){standardGeneric("metaboDailyPlot")}
@@ -218,6 +225,8 @@ setMethod( f="metaboDailyPlot",
             beeswarm::beeswarm(meanObs ~ Group,data=plotDf,add=T,cex=.5,col="red")
           })
 
+
+## metaboDailyPlot2 ####
 
 setGeneric(
   name = "metaboDailyPlot2",

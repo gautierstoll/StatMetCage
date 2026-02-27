@@ -1,3 +1,8 @@
+# RawMetaboData####
+
+## RawMetaboData object ####
+# A S4 object in R with initialize
+
 #' Class of raw data parsing
 #' It check just if header and data are not empty
 #' @slot Date start recording date

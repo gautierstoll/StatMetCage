@@ -1,3 +1,7 @@
+# AnalysisMetaboData ####
+
+## AnalysisMetaboData ####
+
 #' @include RawMetaboData.R
 library(ggplot2)
 library(directlabels)
@@ -84,11 +88,12 @@ setMethod(f="initialize",
             return(.Object)
           })
 
+## metaboRawPlot ####
+
 setGeneric(
   name = "metaboRawPlot",
   def = function(x,observation,type="data",group = "Group"){standardGeneric("metaboRawPlot")}
 )
-
 
 #' Plot time dependant metabolic  raw data
 #' @param x AnalysisMetaboData S4 object
@@ -121,6 +126,7 @@ setMethod(f="metaboRawPlot",
             legend(x=xMinMax[1],y=yMinMax[2],legend = AnnotGroups,col = unique(listCol),pch=1) ## col may not be correct
           })
 
+## metaboRawPlot2 ####
 
 setGeneric(
   name = "metaboRawPlot2",
