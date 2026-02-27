@@ -1,0 +1,225 @@
+library(tcltk)
+library(tidyverse)
+library(StatMetCage)
+source("R/RawMetaboData.R")
+source("R/AnalysisMetaboData.R")
+source("R/ResDailyMeanStatMetabo.R")
+
+# load tables #####
+FileList <- tk_choose.files()
+# FileList <- c(
+#   "~/Desktop/Last_NoNF/03112025.csv",
+#   "~/Desktop/Last_NoNF/01112025.csv",
+#   "~/Desktop/Last_NoNF/26102025.csv",
+#   "~/Desktop/Last_NoNF/30102025.csv"
+# )
+
+inj_time <- list(dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:46"),
+                 dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),
+                 dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:50"),
+                 dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 17:52"),
+                 dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:52"),
+                 dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:53"),
+                 dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:45"),
+                 dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:47"))
+
+names(inj_time) <- as.character(seq(1,length(inj_time)))
+
+Folder <- paste0(str_split(FileList[1], "/")[[1]][1:length(str_split(FileList[1], "/")[[1]])-1],collapse = "/")
+Folder_res <- paste0(Folder,"/Results_", format(now(), format = c("%Y-%m-%d_%H:%M:%S")))
+dir.create(Folder_res)
+setwd(Folder_res)
+
+RawMetaboData <- sapply(FileList, function(File){
+  tmp <- new("RawMetaboData",fileName = File,sepCSV = ";")
+  tmp@data <- tmp@data[which(tmp@data$RER != "-"),]
+  return(tmp)
+})
+
+# Combine tables #####
+# RawMetaFull <- new("RawMetaboData") #Empty file generation on RawMetaboData format
+RawMetaFull <- new("RawMetaboData")
+RawMetaFull@header <- do.call("rbind", lapply(RawMetaboData, function(data) data@header))
+RawMetaFull@data <- do.call("rbind", lapply(RawMetaboData, function(data) data@data))
+
+
+RawMetaFull@data = RawMetaFull@data %>% mutate_at(vars(!contains("Date") & !contains("Time")), function(x) as.numeric(gsub(",",".",x)))
+RawMetaFull@data <- RawMetaFull@data %>%
+  group_by(`Animal No.`) %>%
+  mutate(deltaDrink = if("Drink" %in% names(.)){Drink - lag(Drink)}) %>%
+  mutate(deltaFeed = if("Feed" %in% names(.)) {Feed - lag(Feed)})
+
+## extract annotation table from tables
+colnames(RawMetaFull@header) <- c("Box","Animal","Weight","Treat","Text2","Text3", "Date", "Time")
+
+
+## Combine annotation
+AnnotFull = RawMetaFull@header
+
+## Define fields of interest
+FieldsOfInterest = names(RawMetaFull@data)[c(1,2,14,17,20,21,40,41,24:39)]
+FieldsOfInterest <- c(FieldsOfInterest,"deltaFeed","deltaDrink")
+
+## Instanciate an analysis object
+AnalysisFull = new("AnalysisMetaboData",rawData = RawMetaFull,
+                   obs = FieldsOfInterest,annotation = AnnotFull,annotGroups = c("Treat"),actSwitchHour = 7)
+
+AnalysisFull@data <- AnalysisFull@data %>% mutate(UTC = dmy_hm(paste(Date, Time))) %>% mutate(UTC_rel = difftime(UTC, inj_time[`Animal No.`][[1]])/dminutes(x=5))
+
+time <- data.frame(AnalysisFull@data$MyTime, AnalysisFull@data$RelDay)
+print("Full Analysis")
+
+metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel")
+AnalysisFull_filter <- AnalysisFull
+AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% c(9,10,11,14,15)))
+metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel")
+
+pdf.options(useDingbats = TRUE)
+pdf(file=paste0(today(), "_", "ResFull_all_split","_filter",".pdf"), width = 12, height = 12)
+## loop over fields of interest
+# metaboRawPlot(AnalysisFull,observation = "Feed",group = "Treat")
+for (Field in FieldsOfInterest[-c(1,2)]) {
+  print(Field)
+  metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "UTC_rel")
+  ## Nights
+  tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
+                    group = "Treat",hourWin = c(19,7),timWind=c(0,7),control = "c",
+                    cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
+  
+  # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," night",
+  #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
+  #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+  
+  metaboDailyPlot2(tmpResDaily, mainTitle = paste(Field," night",
+                                                 "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
+                                                 ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+  
+  # Days
+  tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
+                    group = "Treat",hourWin = c(7,19),timWind=c(0, 7),control = "c",
+                    cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
+
+
+  # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," day",
+  #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
+  #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+
+  metaboDailyPlot2(tmpResDaily,mainTitle = paste(Field," day",
+                                                 "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
+                                                 ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+
+}
+dev.off()
+
+
+
+
+#Test####
+# tmpResDaily@lmeRes$data
+# table(tmpResDaily@lmeRes$data$Group)
+# table(tmpResDaily@lmeRes$data$Days)
+# 
+# 
+# AnalysisFull@data %>%
+#   as_tibble %>%
+#   mutate(Days = (interval(dmy(Date), MyTime) %/% days(1))+1) %>%
+#   group_by(`Animal No.`,Treat,RelDay) %>%
+#   summarise(mean)
+# test <- AnalysisFull@data %>% as_tibble %>% group_by(`Animal No.`,Treat,ceiling(RelDay)) %>% summarise_all(mean)
+# 
+# 
+# test <- AnalysisFull@data %>% as_tibble %>% select(`MyTime`, Date)
+# 
+#Original#####
+# library(tcltk)
+# # library(StatMetCage)
+# library(tidyverse)
+# 
+# source("~/Desktop/StatMetCage/StatMetCage/R/RawMetaboData.R")
+# source("~/Desktop/StatMetCage/StatMetCage/R/AnalysisMetaboData.R")
+# source("~/Desktop/StatMetCage/StatMetCage/R/ResDailyMeanStatMetabo.R")
+# source("~/Desktop/StatMetCage/StatMetCage/R/ResStatMetabo.R")
+# source("~/Desktop/StatMetCage/StatMetCage/R/StatShiny.R")
+# 
+# library(StatMetCage)
+# 
+# flist <- tk_choose.files()
+# output_path <- paste0(str_split(flist[1],"/")[[1]][1:length(str_split(flist[1],"/")[[1]])-1], collapse = "/")
+# 
+# 
+# data_list <- sapply(flist, function(file){
+#   RawMetaDatatmp= new("RawMetaboData",fileName = file,sepCSV = ";")
+#   RawMetaDatatmp@data = RawMetaDatatmp@data[which(RawMetaDatatmp@data$RER != "-"),]
+#   return(RawMetaDatatmp)
+# })
+# 
+# 
+# ## Combine tables
+# RawMetaFull = data_list[[1]]
+# # RawMetaFull@header = c(sapply(data_list, function(X) X@header))
+# RawMetaFull@header = Reduce("rbind", lapply(data_list, function(X) X@header))
+# RawMetaFull@data = Reduce("rbind", lapply(data_list, function(X) X@data))
+# 
+# # ## extract annotation table from tables
+# # AnnotFull <- Reduce("rbind", lapply(data_list, function(Raw_data){
+# #   Reduce("rbind",lapply(4:11,function(index){
+# #     lSplit = strsplit(Raw_data@header[index],split = ";")[[1]] 
+# #     data.frame(Box = lSplit[1],
+# #                Animal = lSplit[2],
+# #                Weight = as.numeric(gsub(",",".",lSplit[3],fixed=T)),
+# #                Treat = lSplit[4],Date = Raw_data@data$Date[1],
+# #                Time =Raw_data@data$Time[1])
+# #     }))
+# # }))
+# 
+# ## Combine annotation
+# # AnnotFull$Treat = gsub(" ","",AnnotFull$Treat,fixed = T)
+# AnnotFull = RawMetaFull@header
+# AnnotFull = AnnotFull %>% mutate(Time = data_list[[1]]@data$Time[1])
+# 
+# ## Define fields of interest
+# # FieldsOfInterest = names(RawMetaFull@data)[c(14,17,20,21,40,41,24:39)]
+# FieldsOfInterest = colnames(RawMetaFull@data)[c(14,17,20,21,40,41,24:39)]
+# 
+# ## Instanciate an analysis object
+# AnalysisFull = new("AnalysisMetaboData",rawData = RawMetaFull,
+#                    obs = FieldsOfInterest,annotation = AnnotFull,annotGroups = c("Text1"),actSwitchHour =19)
+# 
+# # Define time windows
+# print(metaboRawPlot(AnalysisFull,observation = "Feed",group = "Treat")) #for select the good values
+# TimeWindow <- as.numeric(str_split(readline("enter the experiment numbers (start end) \n"), "\ ")[[1]])
+# 
+# 
+# print("Full Analysis")
+# pdf(file=paste0(c(output_path, paste0(c("ResFull",TimeWindow,".pdf"), collapse = "_")), collapse = "/"))
+# ## loop over fields of interest
+# metaboRawPlot(AnalysisFull,observation = "Feed",group = "Treat")
+# for (Field in FieldsOfInterest) {
+#   print(Field)
+#   ## Nights
+#   # AnalysisFull@data <- AnalysisFull@data %>% as_tibble %>%
+#   #   mutate_at(vars(-MyTime,-Sun,-Treat), function(Input) as.numeric(sub(",", ".", Input, fixed = TRUE))) %>%
+#   #   group_by(`Animal No.`,MyTime,Sun,Treat) %>% summarise_all(mean)
+#   
+#   tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull,observation = Field,
+#                       group = "Treat",hourWin = c(19,7),timWind=TimeWindow,control = "c",
+#                       cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
+#   
+#   metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," night",
+#                                                 "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
+#                                                 ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+# 
+#   ## Days
+#   tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull,observation = Field,
+#                       group = "Treat",hourWin = c(7,19),timWind=TimeWindow,control = "c",
+#                       cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
+#   
+#   
+#   metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," day",
+#                                                 "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
+#                                                 ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+#   
+# }
+# dev.off()
+# 
+# 

@@ -1,7 +1,6 @@
 #' @include RawMetaboData.R
-#' @import ggplot2
-#' @import directlabels
-NULL
+library(ggplot2)
+library(directlabels)
 
 #' Class of data for statistical analysis
 #' @slot data data frame that contains animal, specified observations, absolute time (my time), floating point day (RelDay), day activity (Sun), sine function based on day activity, squared floating point day (SqRelDay)
@@ -93,7 +92,7 @@ setGeneric(
 
 #' Plot time dependant metabolic  raw data
 #' @param x AnalysisMetaboData S4 object
-#' @param observation Name of observation column
+#' 
 #' @param type type of plot: data, mean.sd
 #' @param group Group for coloring and/or mean/sd
 #' @export
@@ -125,22 +124,23 @@ setMethod(f="metaboRawPlot",
 
 setGeneric(
   name = "metaboRawPlot2",
-  def = function(x,observation,group = "Group",labels = NULL){standardGeneric("metaboRawPlot2")}
+  def = function(x,observation,group = "Group",Time_scale = "RelDay",labels = NULL){standardGeneric("metaboRawPlot2")}
 )
 
 
 #' Plot time dependant metabolic  raw data
 #' @param x AnalysisMetaboData S4 object
-#' @param observation Name of observation values
+#' 
 #' @param group Group for coloring and/or mean/sd
+#' @param Time_scale column name of time scale 
 #' @param labels Labels
 #' @export
 setMethod(f="metaboRawPlot2",
           signature = "AnalysisMetaboData",
-          definition = function(x,observation,group = "Group",labels = NULL){
-            gg <- ggplot(x@data %>% filter(!is.na(get(observation))), aes(x = RelDay, y = get(observation), color = get(group)))+
+          definition = function(x,observation,group = "Group",Time_scale = "RelDay",labels = NULL){
+            gg <- ggplot(x@data %>% filter(!is.na(get(observation))), aes(x = get(Time_scale), y = get(observation), color = get(group)))+
               geom_line(alpha = 0.3, aes(group = `Animal No.`)) +
-              labs(y = observation, color = group) +
+              labs(x = Time_scale, y = observation, color = group) +
               ggtitle(observation) +
               geom_smooth(method = "loess", formula = 'y ~ x', span = 0.01)+
               if (!is.null(labels)) {geom_dl(aes(label = get(labels)), method = list(dl.trans(x = x + .2), "last.points"))}
