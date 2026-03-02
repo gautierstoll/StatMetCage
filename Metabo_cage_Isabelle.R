@@ -2,13 +2,13 @@ setwd("~/Documents/Git/StatMetCage")
 library(tcltk)
 library(tidyverse)
 library(StatMetCage)
-# library(foreach)
-# library(doParallel)
+library(foreach)
+library(doParallel)
 source("R/RawMetaboData.R")
 source("R/AnalysisMetaboData.R")
 source("R/ResDailyMeanStatMetabo.R")
 
-
+nbcore <- parallel::detectCores()
 
 # load tables #####
 FileList <- tk_choose.files()
@@ -127,6 +127,70 @@ for (Field in FieldsOfInterest[-c(1,2)]) {
 
 }
 dev.off()
+
+
+cl <- makeCluster(80)
+registerDoParallel(cl)
+
+
+
+x<-foreach(i=1:100) %dopar% {
+  pdf("test.pdf")
+  plot(i)
+  dev.off()
+}
+
+
+
+# Run scripts in parallel
+test <- foreach(Field == FieldsOfInterest[-c(1,2)]) %dopar% {
+  # source(script)  # Source each script
+  function (Field) {
+    print(Field)
+    plot(metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "RelDay"))
+    metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "UTC_rel")
+    
+    ## Nights
+    tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
+                      group = "Treat",hourWin = c(19,7),timWind=c(1.3,2),control = "c",
+                      cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
+    
+    # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," night",
+    #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
+    #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+    
+    metaboDailyPlot2(tmpResDaily, mainTitle = paste(Field," night",
+                                                    "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
+                                                    ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+    
+    # Days
+    tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
+                      group = "Treat",hourWin = c(7,19),timWind=c(1.3,2),control = "c",
+                      cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
+    
+    
+    # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," day",
+    #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
+    #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+    
+    metaboDailyPlot2(tmpResDaily,mainTitle = paste(Field," day",
+                                                   "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
+                                                   ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+    
+  }
+}
+
+# Cleanup
+stopCluster(cl)
+registerDoSEQ()  # Reset to sequential mode
+
+
+
+
+pdf(file=paste0(today(), "_", "ResFull_all_split","_filter_test",".pdf"), width = 12, height = 12)
+print(test)
+dev.off()
+
 
 
 
