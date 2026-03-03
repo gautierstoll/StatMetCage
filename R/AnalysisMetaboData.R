@@ -4,6 +4,7 @@
 
 #' @include RawMetaboData.R
 library(ggplot2)
+library(tidyverse)
 library(directlabels)
 
 #' Class of data for statistical analysis
@@ -151,5 +152,6 @@ setMethod(f="metaboRawPlot2",
               geom_smooth(method = "loess", formula = 'y ~ x', span = 0.01)+
               if (!is.null(labels)) {geom_dl(aes(label = get(labels)), method = list(dl.trans(x = x + .2), "last.points"))}
             print(gg)
+            return(gg)
           })
 

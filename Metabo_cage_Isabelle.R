@@ -88,67 +88,17 @@ AnalysisFull_filter <- AnalysisFull
 AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% c(9,10,11,14,15)))
 metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel")
 
-pdf.options(useDingbats = TRUE)
-pdf(file=paste0(today(), "_", "ResFull_all_split","_filter",".pdf"), width = 12, height = 12)
 
-## loop over fields of interest
-# metaboRawPlot(AnalysisFull,observation = "Feed",group = "Treat")
-for (Field in FieldsOfInterest[-c(1,2)]) {
-  print(Field)
-  metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "RelDay")
-  metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "UTC_rel")
-  
-  ## Nights
-  tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
-                    group = "Treat",hourWin = c(19,7),timWind=c(1.3,2),control = "c",
-                    cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
-  
-  # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," night",
-  #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
-  #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
-  
-  metaboDailyPlot2(tmpResDaily, mainTitle = paste(Field," night",
-                                                 "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
-                                                 ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
-  
-  # Days
-  tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
-                    group = "Treat",hourWin = c(7,19),timWind=c(1.3,2),control = "c",
-                    cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
-
-
-  # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," day",
-  #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
-  #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
-
-  metaboDailyPlot2(tmpResDaily,mainTitle = paste(Field," day",
-                                                 "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
-                                                 ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
-
-}
-dev.off()
-
-
-cl <- makeCluster(80)
+cl <- makeCluster(nbcore-2)
 registerDoParallel(cl)
 
 
-
-x<-foreach(i=1:100) %dopar% {
-  pdf("test.pdf")
-  plot(i)
-  dev.off()
-}
-
-
-
 # Run scripts in parallel
-test <- foreach(Field == FieldsOfInterest[-c(1,2)]) %dopar% {
-  # source(script)  # Source each script
-  function (Field) {
+result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 'directlabels', 'rstatix', 'ggpubr')) %dopar% {
     print(Field)
-    plot(metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "RelDay"))
-    metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "UTC_rel")
+    
+    tmp1 <- metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "RelDay")
+    tmp2 <- metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "UTC_rel")
     
     ## Nights
     tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
@@ -159,7 +109,7 @@ test <- foreach(Field == FieldsOfInterest[-c(1,2)]) %dopar% {
     #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
     #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
     
-    metaboDailyPlot2(tmpResDaily, mainTitle = paste(Field," night",
+    tmp3 <- metaboDailyPlot2(tmpResDaily, mainTitle = paste(Field," night",
                                                     "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
                                                     ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
     
@@ -173,11 +123,12 @@ test <- foreach(Field == FieldsOfInterest[-c(1,2)]) %dopar% {
     #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
     #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
     
-    metaboDailyPlot2(tmpResDaily,mainTitle = paste(Field," day",
+    tmp4 <- metaboDailyPlot2(tmpResDaily,mainTitle = paste(Field," day",
                                                    "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
                                                    ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
     
-  }
+    print(list(tmp1, tmp2, tmp3, tmp4))
+    return(list(tmp1, tmp2, tmp3, tmp4))
 }
 
 # Cleanup
@@ -185,11 +136,14 @@ stopCluster(cl)
 registerDoSEQ()  # Reset to sequential mode
 
 
-
-
-pdf(file=paste0(today(), "_", "ResFull_all_split","_filter_test",".pdf"), width = 12, height = 12)
-print(test)
+pdf(file=paste0(today(), "_", "ResFull_all_split","_filter",".pdf"), width = 12, height = 12)
+print(result)
 dev.off()
+
+
+
+
+
 
 
 
