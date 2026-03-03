@@ -92,7 +92,6 @@ metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label 
 cl <- makeCluster(nbcore-2)
 registerDoParallel(cl)
 
-
 # Run scripts in parallel
 result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 'directlabels', 'rstatix', 'ggpubr')) %dopar% {
     print(Field)
@@ -127,7 +126,6 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
                                                    "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
                                                    ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
     
-    print(list(tmp1, tmp2, tmp3, tmp4))
     return(list(tmp1, tmp2, tmp3, tmp4))
 }
 
