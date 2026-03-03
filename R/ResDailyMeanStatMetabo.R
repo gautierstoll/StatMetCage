@@ -253,6 +253,7 @@ setMethod( f="metaboDailyPlot2",
                stat_anova_test() +
                theme_bw()
              
-             print(gg + stat_pvalue_manual(plotDf_stat_0))
-             print(gg + stat_pvalue_manual(plotDf_stat_1) + facet_wrap(~ RelDay))
+             p1 <- (gg + stat_pvalue_manual(plotDf_stat_0))
+             p2 <- (gg + stat_pvalue_manual(plotDf_stat_1) + facet_wrap(~ RelDay))
+             return(list(p1, p2))
            })

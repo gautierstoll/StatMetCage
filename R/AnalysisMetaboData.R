@@ -151,7 +151,7 @@ setMethod(f="metaboRawPlot2",
               ggtitle(observation) +
               geom_smooth(method = "loess", formula = 'y ~ x', span = 0.01)+
               if (!is.null(labels)) {geom_dl(aes(label = get(labels)), method = list(dl.trans(x = x + .2), "last.points"))}
-            print(gg)
+            # print(gg)
             return(gg)
           })
 
