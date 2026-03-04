@@ -19,25 +19,25 @@ FileList <- tk_choose.files()
 #   "~/Desktop/Last_NoNF/30102025.csv"
 # )
 
-inj_time <- list(dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:46"),
-                 dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),
-                 dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:50"),
-                 dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 17:52"),
-                 dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:52"),
-                 dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:53"),
-                 dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:45"),
-                 dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:47"))
+# inj_time <- list(dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:46"),
+#                  dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),
+#                  dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:50"),
+#                  dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 17:52"),
+#                  dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:52"),
+#                  dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:53"),
+#                  dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:45"),
+#                  dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:47"))
 
 # inj_time <- list(dmy_hm("18-10-2025 18:38"),dmy_hm("18-10-2025 18:38"),dmy_hm("18-10-2025 18:38"),dmy_hm("18-10-2025 18:44"),
 #                  dmy_hm("18-10-2025 18:46"),dmy_hm("18-10-2025 18:46"),dmy_hm("18-10-2025 18:46"),dmy_hm("18-10-2025 18:45"),
-#                  dmy_hm("20-10-2025 17:55"),dmy_hm("20-10-2025 17:55"),dmy_hm("20-10-2025 17:55"),dmy_hm("20-10-2025 18:02"),
-#                  dmy_hm("20-10-2025 18:05"),dmy_hm("20-10-2025 18:05"),dmy_hm("20-10-2025 18:05"),dmy_hm("20-10-2025 18:04"),
+#                  dmy_hm("21-10-2025 17:55"),dmy_hm("21-10-2025 17:55"),dmy_hm("21-10-2025 17:55"),dmy_hm("21-10-2025 18:02"),
+#                  dmy_hm("21-10-2025 18:05"),dmy_hm("21-10-2025 18:05"),dmy_hm("21-10-2025 18:05"),dmy_hm("21-10-2025 18:04"),
 #                  dmy_hm("23-10-2025 18:00"),dmy_hm("23-10-2025 18:00"),dmy_hm("23-10-2025 18:00"),dmy_hm("23-10-2025 18:05"),
 #                  dmy_hm("23-10-2025 18:08"),dmy_hm("23-10-2025 18:08"),dmy_hm("23-10-2025 18:08"),dmy_hm("23-10-2025 18:07"),
-#                  dmy_hm("28-10-2025 18:00"),dmy_hm("28-10-2025 18:00"),dmy_hm("28-10-2025 18:00"),dmy_hm("28-10-2025 18:05"),
-#                  dmy_hm("28-10-2025 18:07"),dmy_hm("28-10-2025 18:07"),dmy_hm("28-10-2025 18:07"),dmy_hm("28-10-2025 18:06"))
-
-names(inj_time) <- as.character(seq(1,length(inj_time)))
+#                  dmy_hm("25-10-2025 18:00"),dmy_hm("25-10-2025 18:00"),dmy_hm("25-10-2025 18:00"),dmy_hm("25-10-2025 18:05"),
+#                  dmy_hm("25-10-2025 18:07"),dmy_hm("25-10-2025 18:07"),dmy_hm("25-10-2025 18:07"),dmy_hm("25-10-2025 18:06"))
+# 
+# names(inj_time) <- as.character(seq(1,length(inj_time)))
 
 Folder <- paste0(str_split(FileList[1], "/")[[1]][1:length(str_split(FileList[1], "/")[[1]])-1],collapse = "/")
 Folder_res <- paste0(Folder,"/Results_", format(now(), format = c("%Y-%m-%d_%H:%M:%S")))
@@ -78,14 +78,15 @@ FieldsOfInterest <- c(FieldsOfInterest,"deltaFeed","deltaDrink")
 AnalysisFull = new("AnalysisMetaboData",rawData = RawMetaFull,
                    obs = FieldsOfInterest,annotation = AnnotFull,annotGroups = c("Treat"),actSwitchHour = 7)
 
-AnalysisFull@data <- AnalysisFull@data %>% mutate(UTC = dmy_hm(paste(Date, Time))) %>% mutate(UTC_rel = difftime(UTC, inj_time[`Animal No.`][[1]])/dminutes(x=5))
+# AnalysisFull@data <- AnalysisFull@data %>% mutate(UTC = dmy_hm(paste(Date, Time))) %>% mutate(UTC_rel = difftime(UTC, inj_time[`Animal No.`][[1]])/dminutes(x=5))
 
 time <- data.frame(AnalysisFull@data$MyTime, AnalysisFull@data$RelDay)
 print("Full Analysis")
 
-metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel")
+# metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel")
+metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "RelDay")
 AnalysisFull_filter <- AnalysisFull
-AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% c(9,10,11,14,15)))
+# AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% c(9,10,11,14,15)))
 metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel")
 
 
