@@ -85,9 +85,11 @@ print("Full Analysis")
 
 # metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel")
 metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "RelDay")
+try(metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
 AnalysisFull_filter <- AnalysisFull
 # AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% c(9,10,11,14,15)))
-metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel")
+metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "RelDay")
+try(metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
 
 
 cl <- makeCluster(nbcore-2)
@@ -98,7 +100,7 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
     print(Field)
     
     try(tmp1 <- metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "RelDay"))
-    try(tmp2 <- metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
+    # try(tmp2 <- metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
     
     ## Nights
     tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
@@ -110,8 +112,7 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
     #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
     
     tmp3 <- metaboDailyPlot2(tmpResDaily, mainTitle = paste(Field," night",
-                                                    "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
-                                                    ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+                                                    "\npval_keto=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2)))
     
     # Days
     tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
@@ -124,10 +125,9 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
     #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
     
     tmp4 <- metaboDailyPlot2(tmpResDaily,mainTitle = paste(Field," day",
-                                                   "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
-                                                   ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+                                                   "\npval_keto=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2)))
     
-    return(list(tmp1, tmp2, tmp3, tmp4))
+    return(list(tmp1, tmp3, tmp4))
 }
 
 # Cleanup

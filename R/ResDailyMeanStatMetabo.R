@@ -43,6 +43,7 @@ setClass("ResDailyMeanStatMetabo",
            timWind = "numeric",
            cumul = "logical",
            data = "data.frame",
+           rawdata = "data.frame",
            dataProcess = "data.frame"
          ))
 
@@ -76,7 +77,7 @@ setMethod( f="initialize",
              if (!is.element(observation,names(anMetData@data))){stop("Observation not found")}
              if (!is.element(group,names(anMetData@data))){stop("Group not found")}
              if (!is.element(control,unlist(anMetData@data[group]))){stop("Control ",control," not found")}
-             if ((length(timWind) == 1) | length(timWind) > 2){stop("Invalid time window")}
+             if (length(timWind) != 2){stop("Invalid time window")}
              dataDF = anMetData@data[,c(anMetData@animal,observation,group,"MyTime","RelDay","Sun")]
              names(dataDF)[1:3] = c("Animal","Observation","Group")
              dataDF$Observation = as.numeric(gsub(",",".",dataDF$Observation,fixed=T))
@@ -85,9 +86,7 @@ setMethod( f="initialize",
                if (!is.element(norm,names(anMetData@data))){stop("Normalization not found")}
                dataDF$Observation = dataDF$Observation/as.numeric(unlist(anMetData@data[[norm]]))
              }
-             
-             if (length(timWind) == 2) {dataDF %>% as_tibble %>% filter(RelDay >= timWind[1] & RelDay <= timWind[2])}
-             
+             if (length(timWind) == 2) {dataDF <- dataDF %>% as_tibble %>% mutate(TimeWindow = (RelDay - timWind[1] / (timWind[2]-timWind[1])))}
              .Object@group = group
              # Text time windows converter
              if (grepl(":", hourWin[1]) | grepl(":", hourWin[2])) {
@@ -102,7 +101,7 @@ setMethod( f="initialize",
              } else {
                dataDF$activity = as.integer(((as.integer(dataDF$MyTime)/3600)%%24 > hourWin[1]) | ((as.integer(dataDF$MyTime)/3600)%%24 < hourWin[2]))
              }
-             dataDF <- dataDF %>% as_tibble %>% mutate(absolutDay = as.integer((unclass(MyTime)/3600)/24), RelDay2 = as.factor(floor(RelDay)))
+             dataDF2 <- dataDF %>% as_tibble %>% mutate(absolutDay = as.integer((unclass(MyTime)/3600)/24), RelDay2 = as.factor(floor(RelDay)))
               dataDF4Lm = do.call(rbind,
                by(dataDF,dataDF$Animal,function(subData){if (cumul) {
                  subDataObs = subData$Observation[which(subData$activity == 1)]
@@ -113,7 +112,7 @@ setMethod( f="initialize",
               if (statLog) {dataDF4Lm$meanObs = log10(dataDF4Lm$meanObs)}
                 .Object@lmRes = lm(meanObs ~ Group,data = dataDF4Lm)
                 dataDF4Lme = do.call(rbind,
-                                   by(dataDF,dataDF[c('Animal','absolutDay')],
+                                   by(dataDF2,dataDF2[c('Animal','absolutDay')],
                                       function(subData){
                                         if (cumul) {
                                           subDataObs <- subData$Observation[which(subData$activity == 1)]
@@ -134,7 +133,7 @@ setMethod( f="initialize",
                                         }))
                 
                 dataDF4Lme2 = do.call(rbind,
-                                     by(dataDF,dataDF[c('Animal','RelDay2')],
+                                     by(dataDF2,dataDF2[c('Animal','RelDay2')],
                                         function(subData){
                                           if (cumul) {
                                             # subDataObs <- subData$Observation[which(subData$activity == 1)]
@@ -167,7 +166,8 @@ setMethod( f="initialize",
               .Object@lmeRes = nlme::lme(meanObs ~ Group,random = ~ 1|Animal,data = dataDF4Lme[which(is.finite(dataDF4Lme$meanObs)),])
               .Object@lmeRes2 = nlme::lme(meanObs ~ Group,random = ~ 1|Animal,data = dataDF4Lme2[which(is.finite(dataDF4Lme2$meanObs)),])
               .Object@tukeyPairs = TukeyHSD(aov(meanObs ~ Group,data = dataDF4Lm))
-              .Object@data <- dataDF
+              .Object@data <- dataDF2
+              .Object@rawdata <- dataDF2
               .Object@dataProcess <- dataDF4Lme2
              return(.Object)
            })
@@ -190,7 +190,7 @@ setGeneric(
 #' @export
 setMethod( f="metaboDailyPlot",
           signature = "ResDailyMeanStatMetabo",
-          definition = function(x,signif=T,pvalStar = T,mainTitle = "",cex.axis.lab=1, hourWin = NULL){
+          definition = function(x,signif=T,pvalStar = T,mainTitle = "",cex.axis.lab=1){
             plotDf = x@lmeRes$data
             pairwisePval=t(x@tukeyPairs$Group[,4,drop=F])
             names(pairwisePval) = row.names(x@tukeyPairs$Group)
@@ -268,7 +268,18 @@ setMethod( f="metaboDailyPlot2",
                stat_anova_test() +
                theme_bw()
              
-             p1 <- (gg + aes(group = Animal) + stat_pvalue_manual(plotDf_stat_0))
-             p2 <- (gg + stat_pvalue_manual(plotDf_stat_1) + facet_wrap(~ RelDay))
+             p1 <- gg + stat_pvalue_manual(plotDf_stat_0)
+             p2 <- gg + stat_pvalue_manual(plotDf_stat_1) + facet_wrap(~ RelDay)
+             
+             plotDf <- x@rawdata %>% group_by(Group, Animal, floor(TimeWindow)) %>% summarise(meanObs = mean(Observation))
+             gg2 <- ggplot(plotDf %>% filter(), aes(x = Group, y = meanObs, color = Group)) +
+               geom_boxplot(outlier.shape = NA) +
+               geom_point(position = position_jitterdodge()) +
+               ggtitle(mainTitle) +
+               stat_anova_test() +
+               theme_bw()
+             
+             p3 <- 
+             
              return(list(p1, p2))
            })
