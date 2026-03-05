@@ -104,7 +104,7 @@ setGeneric(
 #' @export
 setMethod(f="metaboRawPlot",
           signature = "AnalysisMetaboData",
-          definition = function(x,observation,type="data",group = "Group"){
+          definition = function(x,observation,type="data",group = "Group", hourWin = NULL){
             Animals = unique(x@data[[x@animal]])
             AnnotGroups = unique(x@data[[group]])
             yMinMax = c(min(as.numeric(gsub(",",".",x@data[[observation]],fixed=T)),na.rm = T),max(as.numeric(gsub(",",".",x@data[[observation]],fixed=T)),na.rm = T)+
@@ -145,13 +145,40 @@ setGeneric(
 setMethod(f="metaboRawPlot2",
           signature = "AnalysisMetaboData",
           definition = function(x,observation,group = "Group",Time_scale = "RelDay",labels = NULL){
+            if (grepl(":", hourWin[1]) | grepl(":", hourWin[2])) {
+              hourWin <- sapply(hourWin, function(x) {
+                tmp <- strsplit(x, ":")[[1]]
+                if (tmp[1] < 0 & tmp[1] >= 24 & tmp[2] < 0 & tmp[2] >= 60) {stop("Uncorrect hourWin format")}
+                return(as.numeric(tmp[1])+as.numeric(tmp[2])/60)
+              })
+            }
+            
+            
             gg <- ggplot(x@data %>% filter(!is.na(get(observation))), aes(x = get(Time_scale), y = get(observation), color = get(group)))+
-              geom_line(alpha = 0.3, aes(group = `Animal No.`)) +
+              geom_line(alpha = 0.5, aes(group = `Animal No.`)) +
               labs(x = Time_scale, y = observation, color = group) +
               ggtitle(observation) +
-              geom_smooth(method = "loess", formula = 'y ~ x', span = 0.01)+
+              theme_bw()+
+              geom_smooth(method = "loess", formula = 'y ~ x', span = 0.05) +
               if (!is.null(labels)) {geom_dl(aes(label = get(labels)), method = list(dl.trans(x = x + .2), "last.points"))}
+            # Night square adding
+            if ("Sun" %in% names(x@data) & Time_scale %in% names(x@data)){
+              time_square <- x@data %>% filter(!is.na(get(observation)) & Sun == "night") %>% 
+                group_by(floor(get(Time_scale))) %>%
+                summarise(start = min(get(Time_scale)), end = max(get(Time_scale)))
+              gg <- gg + geom_rect(data = time_square, inherit.aes = FALSE, show.legend = FALSE,
+                                   aes(xmin = start, xmax = end, ymin= 0, ymax=+Inf), fill = as.factor("grey"), alpha = 0.4)
+            }
             # print(gg)
             return(gg)
           })
+
+
+
+
+
+
+
+
+
 

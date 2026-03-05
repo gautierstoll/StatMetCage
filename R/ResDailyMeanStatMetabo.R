@@ -85,9 +85,10 @@ setMethod( f="initialize",
                if (!is.element(norm,names(anMetData@data))){stop("Normalization not found")}
                dataDF$Observation = dataDF$Observation/as.numeric(unlist(anMetData@data[[norm]]))
              }
-             if (length(timWind) > 1) {dataDF = dataDF[which((dataDF$RelDay > timWind[1]) & (dataDF$RelDay < timWind[2])),]}
-             .Object@group = group
              
+             if (length(timWind) == 2) {dataDF %>% as_tibble %>% filter(RelDay >= timWind[1] & RelDay <= timWind[2])}
+             
+             .Object@group = group
              # Text time windows converter
              if (grepl(":", hourWin[1]) | grepl(":", hourWin[2])) {
                hourWin <- sapply(hourWin, function(x) {
@@ -96,7 +97,6 @@ setMethod( f="initialize",
                  return(as.numeric(tmp[1])+as.numeric(tmp[2])/60)
                  })
              }
-             
              if (hourWin[1] < hourWin[2]) {
                dataDF$activity = as.integer(((as.integer(dataDF$MyTime)/3600)%%24 > hourWin[1]) & ((as.integer(dataDF$MyTime)/3600)%%24 < hourWin[2]))
              } else {
@@ -121,13 +121,15 @@ setMethod( f="initialize",
                                                      Animal = subData$Animal[1],
                                                      Days = subData$absolutDay[1],
                                                      meanObs = subDataObs[length(subDataObs)] - subDataObs[1],
-                                                     RelDay = subData$RelDay2[1])
+                                                     RelDay = subData$RelDay[1],
+                                                     RelDay2 = subData$RelDay2[1])
                                         } else {
                                         data.frame(Group = subData$Group[1],
                                                    Animal = subData$Animal[1],
                                                    Days = subData$absolutDay[1],
                                                    meanObs = mean(subData$Observation[which(subData$activity == 1)],na.rm=T),
-                                                   RelDay = subData$RelDay2[1])
+                                                   RelDay = subData$RelDay[1],
+                                                   RelDay2 = subData$RelDay2[1])
                                           }
                                         }))
                 
@@ -141,20 +143,23 @@ setMethod( f="initialize",
                                                        Animal = subData$Animal[1],
                                                        Days = subData$absolutDay[1],
                                                        meanObs = subDataObs[length(subDataObs)] - subDataObs[1],
-                                                       RelDay = subData$RelDay2[1])
+                                                       RelDay = subData$RelDay[1],
+                                                       RelDay2 = subData$RelDay2[1])
                                             
                                           } else if(grepl("delta", observation)) {
                                             data.frame(Group = subData$Group[1],
                                                        Animal = subData$Animal[1],
                                                        Days = subData$absolutDay[1],
                                                        meanObs = sum(subData$Observation[which(subData$activity == 1)],na.rm=T),
-                                                       RelDay = subData$RelDay2[1])
+                                                       RelDay = subData$RelDay[1],
+                                                       RelDay2 = subData$RelDay2[1])
                                           } else {
                                             data.frame(Group = subData$Group[1],
                                                        Animal = subData$Animal[1],
                                                        Days = subData$absolutDay[1],
                                                        meanObs = mean(subData$Observation[which(subData$activity == 1)],na.rm=T),
-                                                       RelDay = subData$RelDay2[1])
+                                                       RelDay = subData$RelDay[1],
+                                                       RelDay2 = subData$RelDay2[1])
                                           }
                                         }))
               
@@ -185,7 +190,7 @@ setGeneric(
 #' @export
 setMethod( f="metaboDailyPlot",
           signature = "ResDailyMeanStatMetabo",
-          definition = function(x,signif=T,pvalStar = T,mainTitle = "",cex.axis.lab=1){
+          definition = function(x,signif=T,pvalStar = T,mainTitle = "",cex.axis.lab=1, hourWin = NULL){
             plotDf = x@lmeRes$data
             pairwisePval=t(x@tukeyPairs$Group[,4,drop=F])
             names(pairwisePval) = row.names(x@tukeyPairs$Group)
@@ -263,7 +268,7 @@ setMethod( f="metaboDailyPlot2",
                stat_anova_test() +
                theme_bw()
              
-             p1 <- (gg + stat_pvalue_manual(plotDf_stat_0))
+             p1 <- (gg + aes(group = Animal) + stat_pvalue_manual(plotDf_stat_0))
              p2 <- (gg + stat_pvalue_manual(plotDf_stat_1) + facet_wrap(~ RelDay))
              return(list(p1, p2))
            })
