@@ -63,9 +63,10 @@ setClass("ResDailyMeanStatMetabo",
 #' @export
 setMethod( f="initialize",
            signature = "ResDailyMeanStatMetabo",
-           definition = function(.Object,anMetData,observation,norm = NULL,group,control = "control",hourWin = c(8,20),statLog=F,timWind = c(0,max(anMetData@data$RelDay)), cumul = F){
+           definition = function(.Object, anMetData, observation, norm = NULL, group, control = "control",
+                                 hourWin = c("8:00","20:00"), statLog=F, timWind = c(0,max(anMetData@data$RelDay)), cumul = F){
              .Object@statLog = statLog
-             if (is.null(norm)){.Object@norm = character(0)} else {.Object@norm = norm}
+             if (!is.null(norm)){.Object@norm = norm} # What is normalization purpose
              .Object@hourWin = hourWin
              .Object@timWind = timWind
              .Object@group = group
@@ -86,13 +87,22 @@ setMethod( f="initialize",
              }
              if (length(timWind) > 1) {dataDF = dataDF[which((dataDF$RelDay > timWind[1]) & (dataDF$RelDay < timWind[2])),]}
              .Object@group = group
-             if (hourWin[1] < hourWin[2]) {
-               dataDF$activity = c(0,1)[as.integer(((unclass(dataDF$MyTime)/3600)%%24 > hourWin[1]) & ((unclass(dataDF$MyTime)/3600)%%24 < hourWin[2])) + 1]
-             } else {
-               dataDF$activity = c(0,1)[as.integer(((unclass(dataDF$MyTime)/3600)%%24 > hourWin[1]) | ((unclass(dataDF$MyTime)/3600)%%24 < hourWin[2])) + 1]
+             
+             # Text time windows converter
+             if (grepl(":", hourWin[1]) | grepl(":", hourWin[2])) {
+               hourWin <- sapply(hourWin, function(x) {
+                 tmp <- strsplit(x, ":")[[1]]
+                 if (tmp[1] < 0 & tmp[1] > 23 & tmp[2] < 0 & tmp[2] >= 60) {stop("Uncorrect hourWin format")}
+                 return(as.numeric(tmp[1])+as.numeric(tmp[2])/60)
+                 })
              }
-             dataDF$absolutDay = as.integer((unclass(dataDF$MyTime)/3600)/24)
-             dataDF <- dataDF %>% as_tibble %>% mutate(RelDay2 = as.factor(floor(RelDay)))
+             
+             if (hourWin[1] < hourWin[2]) {
+               dataDF$activity = as.integer(((as.integer(dataDF$MyTime)/3600)%%24 > hourWin[1]) & ((as.integer(dataDF$MyTime)/3600)%%24 < hourWin[2]))
+             } else {
+               dataDF$activity = as.integer(((as.integer(dataDF$MyTime)/3600)%%24 > hourWin[1]) | ((as.integer(dataDF$MyTime)/3600)%%24 < hourWin[2]))
+             }
+             dataDF <- dataDF %>% as_tibble %>% mutate(absolutDay = as.integer((unclass(MyTime)/3600)/24), RelDay2 = as.factor(floor(RelDay)))
               dataDF4Lm = do.call(rbind,
                by(dataDF,dataDF$Animal,function(subData){if (cumul) {
                  subDataObs = subData$Observation[which(subData$activity == 1)]
