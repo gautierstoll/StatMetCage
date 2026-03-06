@@ -105,12 +105,13 @@ setMethod( f="initialize",
               dataDF4Lm = do.call(rbind,
                by(dataDF,dataDF$Animal,function(subData){if (cumul) {
                  subDataObs = subData$Observation[which(subData$activity == 1)]
-                 data.frame(Group = subData$Group[1],meanObs = subDataObs[length(subDataObs)] - subDataObs[1])
+                 return(data.frame(Group = subData$Group[1],meanObs = subDataObs[length(subDataObs)] - subDataObs[1]))
                } else {
-                 data.frame(Group = subData$Group[1],meanObs = mean(subData$Observation[which(subData$activity == 1)]))}
+                 return(data.frame(Group = subData$Group[1],meanObs = mean(subData$Observation[which(subData$activity == 1)], na.rm = TRUE)))
+                 }
                  }))
               if (statLog) {dataDF4Lm$meanObs = log10(dataDF4Lm$meanObs)}
-                .Object@lmRes = lm(meanObs ~ Group,data = dataDF4Lm)
+                .Object@lmRes = lm(meanObs ~ Group, data = dataDF4Lm)
                 dataDF4Lme = do.call(rbind,
                                    by(dataDF2,dataDF2[c('Animal','absolutDay')],
                                       function(subData){
@@ -166,7 +167,7 @@ setMethod( f="initialize",
               .Object@lmeRes = nlme::lme(meanObs ~ Group,random = ~ 1|Animal,data = dataDF4Lme[which(is.finite(dataDF4Lme$meanObs)),])
               .Object@lmeRes2 = nlme::lme(meanObs ~ Group,random = ~ 1|Animal,data = dataDF4Lme2[which(is.finite(dataDF4Lme2$meanObs)),])
               .Object@tukeyPairs = TukeyHSD(aov(meanObs ~ Group,data = dataDF4Lm))
-              .Object@data <- dataDF2
+              .Object@data <- dataDF
               .Object@rawdata <- dataDF2
               .Object@dataProcess <- dataDF4Lme2
              return(.Object)
@@ -271,15 +272,24 @@ setMethod( f="metaboDailyPlot2",
              p1 <- gg + stat_pvalue_manual(plotDf_stat_0)
              p2 <- gg + stat_pvalue_manual(plotDf_stat_1) + facet_wrap(~ RelDay)
              
-             plotDf <- x@rawdata %>% group_by(Group, Animal, floor(TimeWindow)) %>% summarise(meanObs = mean(Observation))
-             gg2 <- ggplot(plotDf %>% filter(), aes(x = Group, y = meanObs, color = Group)) +
+             plotDf <- x@rawdata %>% group_by(Group, Animal, floor(TimeWindow)) %>%
+               summarise(meanObs = mean(Observation, na.rm = TRUE), .groups = "keep") %>%
+               rename(Time = `floor(TimeWindow)`)
+             
+             p3 <- ggplot(plotDf%>% filter(Time==0), aes(x = Group, y = meanObs, color = Group)) +
                geom_boxplot(outlier.shape = NA) +
                geom_point(position = position_jitterdodge()) +
                ggtitle(mainTitle) +
                stat_anova_test() +
                theme_bw()
              
-             p3 <- 
+             p4 <- ggplot(plotDf, aes(x = Group, y = meanObs, color = Group)) +
+               geom_boxplot(outlier.shape = NA) +
+               geom_point(position = position_jitterdodge()) +
+               ggtitle(mainTitle) +
+               stat_anova_test() +
+               theme_bw() +
+               facet_wrap(~ Time)
              
-             return(list(p1, p2))
+             return(list(p1, p2, p3, p4))
            })

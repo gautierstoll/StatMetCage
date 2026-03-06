@@ -85,18 +85,18 @@ print("Full Analysis")
 
 # metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel")
 metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "RelDay")
-try(metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
+# try(metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
 AnalysisFull_filter <- AnalysisFull
 # AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% c(9,10,11,14,15)))
 metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "RelDay")
-try(metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
+# try(metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
 
 
-cl <- makeCluster(nbcore-2)
+cl <- makeCluster(24)
 registerDoParallel(cl)
 
 # Run scripts in parallel
-result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 'directlabels', 'rstatix', 'ggpubr')) %dopar% {
+result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 'directlabels', 'rstatix', 'ggpubr')) %do% {
     print(Field)
     
     try(tmp1 <- metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "RelDay"))
