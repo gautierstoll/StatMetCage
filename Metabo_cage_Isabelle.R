@@ -92,8 +92,8 @@ metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label 
 # try(metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
 
 
-cl <- makeCluster(24)
-registerDoParallel(cl)
+# cl <- makeCluster(24)
+# registerDoParallel(cl)
 
 # Run scripts in parallel
 result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 'directlabels', 'rstatix', 'ggpubr')) %do% {
@@ -104,7 +104,7 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
     
     ## Nights
     tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
-                      group = "Treat",hourWin = c(19,7),timWind=c(1.3,2),control = "cd",
+                      group = "Treat",hourWin = c(19,7),timWind=c(0,0.5),control = "cd",
                       cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
     
     # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," night",
@@ -116,7 +116,7 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
     
     # Days
     tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
-                      group = "Treat",hourWin = c(7,19),timWind=c(1.3,2),control = "cd",
+                      group = "Treat",hourWin = c(7,19),timWind=c(0,0.5),control = "cd",
                       cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
     
     
@@ -131,8 +131,8 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
 }
 
 # Cleanup
-stopCluster(cl)
-registerDoSEQ()  # Reset to sequential mode
+# stopCluster(cl)
+# registerDoSEQ()  # Reset to sequential mode
 
 
 pdf(file=paste0(today(), "_", "ResFull_all_split","_filter",".pdf"), width = 12, height = 12)

@@ -264,7 +264,7 @@ setMethod( f="metaboDailyPlot2",
              plotDf_stat_1 <- x@dataProcess %>% filter(!is.na(meanObs)) %>% group_by(RelDay) %>% tukey_hsd(meanObs ~ Group) %>% add_y_position
              gg <- ggplot(plotDf, aes(x = Group, y = meanObs, color = Group)) +
                geom_boxplot(outlier.shape = NA) +
-               geom_point(position = position_jitterdodge()) +
+               geom_point(aes(color = as.factor(Animal)),position = position_jitterdodge()) +
                ggtitle(mainTitle) +
                stat_anova_test() +
                theme_bw()
@@ -276,18 +276,18 @@ setMethod( f="metaboDailyPlot2",
                summarise(meanObs = mean(Observation, na.rm = TRUE), .groups = "keep") %>%
                rename(Time = `floor(TimeWindow)`)
              
-             p3 <- ggplot(plotDf%>% filter(Time==0), aes(x = Group, y = meanObs, color = Group)) +
+             p3 <- ggplot(plotDf %>% filter(Time==0), aes(x = Group, y = meanObs, color = Group)) +
                geom_boxplot(outlier.shape = NA) +
                geom_point(position = position_jitterdodge()) +
                ggtitle(mainTitle) +
-               stat_anova_test() +
+               stat_kruskal_test() +
                theme_bw()
              
              p4 <- ggplot(plotDf, aes(x = Group, y = meanObs, color = Group)) +
                geom_boxplot(outlier.shape = NA) +
                geom_point(position = position_jitterdodge()) +
                ggtitle(mainTitle) +
-               stat_anova_test() +
+               stat_kruskal_test() +
                theme_bw() +
                facet_wrap(~ Time)
              
