@@ -14,6 +14,30 @@ setOldClass("TukeyHSD")
 setOldClass("multitcomp")
 NULL
 
+# function plage
+plage <- function(value, i=0){
+  res <- c()
+  tmp <- value[1]
+  for (val in value){
+    # print(val)
+    if (val == tmp){
+      res <- c(res, i)
+    }
+    else{
+      tmp <- val
+      i <- i+1
+      res <- c(res, i)
+    }
+  }
+  return(res)
+}
+
+
+
+
+
+
+
 #' Class for linear modeling of temporal mean
 #' @slot observation name of output extracted for AnalysisMetaboData
 #' @slot norm name of data in AnalysisMetaboData used for normalization
@@ -102,6 +126,7 @@ setMethod( f="initialize",
                dataDF$activity = as.integer(((as.integer(dataDF$MyTime)/3600)%%24 > hourWin[1]) | ((as.integer(dataDF$MyTime)/3600)%%24 < hourWin[2]))
              }
              dataDF2 <- dataDF %>% as_tibble %>% mutate(absolutDay = as.integer((unclass(MyTime)/3600)/24), RelDay2 = as.factor(floor(RelDay)))
+             dataDF2 <- dataDF2 %>% group_by(Animal) %>% mutate(period = plage(Sun))
               dataDF4Lm = do.call(rbind,
                by(dataDF,dataDF$Animal,function(subData){if (cumul) {
                  subDataObs = subData$Observation[which(subData$activity == 1)]
@@ -264,7 +289,7 @@ setMethod( f="metaboDailyPlot2",
              plotDf_stat_1 <- x@dataProcess %>% filter(!is.na(meanObs)) %>% group_by(RelDay) %>% tukey_hsd(meanObs ~ Group) %>% add_y_position
              gg <- ggplot(plotDf, aes(x = Group, y = meanObs, color = Group)) +
                geom_boxplot(outlier.shape = NA) +
-               geom_point(aes(color = as.factor(Animal)),position = position_jitterdodge()) +
+               geom_point(position = position_jitterdodge()) +
                ggtitle(mainTitle) +
                stat_anova_test() +
                theme_bw()
@@ -272,16 +297,17 @@ setMethod( f="metaboDailyPlot2",
              p1 <- gg + stat_pvalue_manual(plotDf_stat_0)
              p2 <- gg + stat_pvalue_manual(plotDf_stat_1) + facet_wrap(~ RelDay)
              
-             plotDf <- x@rawdata %>% group_by(Group, Animal, floor(TimeWindow)) %>%
+             plotDf <- x@rawdata %>% group_by(Group, Animal, period) %>%
                summarise(meanObs = mean(Observation, na.rm = TRUE), .groups = "keep") %>%
-               rename(Time = `floor(TimeWindow)`)
+               # rename(Time = `floor(TimeWindow)`)
+               rename(Time = period)
              
-             p3 <- ggplot(plotDf %>% filter(Time==0), aes(x = Group, y = meanObs, color = Group)) +
-               geom_boxplot(outlier.shape = NA) +
-               geom_point(position = position_jitterdodge()) +
-               ggtitle(mainTitle) +
-               stat_kruskal_test() +
-               theme_bw()
+             # p3 <- ggplot(plotDf %>% filter(Time==0), aes(x = Group, y = meanObs, color = Group)) +
+             #   geom_boxplot(outlier.shape = NA) +
+             #   geom_point(position = position_jitterdodge()) +
+             #   ggtitle(mainTitle) +
+             #   stat_kruskal_test() +
+             #   theme_bw()
              
              p4 <- ggplot(plotDf, aes(x = Group, y = meanObs, color = Group)) +
                geom_boxplot(outlier.shape = NA) +
@@ -291,5 +317,5 @@ setMethod( f="metaboDailyPlot2",
                theme_bw() +
                facet_wrap(~ Time)
              
-             return(list(p1, p2, p3, p4))
+             return(list(p1, p2, p4))
            })
