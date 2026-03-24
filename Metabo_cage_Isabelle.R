@@ -1,4 +1,4 @@
-setwd("~/Documents/Git/StatMetCage")
+setwd("~/Git/StatMetCage")
 library(tcltk)
 library(tidyverse)
 library(StatMetCage)
@@ -11,22 +11,22 @@ source("R/ResDailyMeanStatMetabo.R")
 nbcore <- parallel::detectCores()
 
 # load tables #####
-FileList <- tk_choose.files()
-# FileList <- c(
-#   "~/Desktop/Last_NoNF/03112025.csv",
-#   "~/Desktop/Last_NoNF/01112025.csv",
-#   "~/Desktop/Last_NoNF/26102025.csv",
-#   "~/Desktop/Last_NoNF/30102025.csv"
-# )
+# FileList <- tk_choose.files()
+FileList <- c(
+  "~/Desktop/Last_NoNF/03112025.csv",
+  "~/Desktop/Last_NoNF/01112025.csv",
+  "~/Desktop/Last_NoNF/26102025.csv",
+  "~/Desktop/Last_NoNF/30102025.csv"
+)
 
-# inj_time <- list(dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:46"),
-#                  dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),
-#                  dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:50"),
-#                  dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 17:52"),
-#                  dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:52"),
-#                  dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:53"),
-#                  dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:45"),
-#                  dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:47"))
+inj_time <- list(dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:46"),
+                 dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),
+                 dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:50"),
+                 dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 17:52"),
+                 dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:52"),
+                 dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:53"),
+                 dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:45"),
+                 dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:47"))
 
 # inj_time <- list(dmy_hm("18-10-2025 18:38"),dmy_hm("18-10-2025 18:38"),dmy_hm("18-10-2025 18:38"),dmy_hm("18-10-2025 18:44"),
 #                  dmy_hm("18-10-2025 18:46"),dmy_hm("18-10-2025 18:46"),dmy_hm("18-10-2025 18:46"),dmy_hm("18-10-2025 18:45"),
@@ -78,7 +78,7 @@ FieldsOfInterest <- c(FieldsOfInterest,"deltaFeed","deltaDrink")
 AnalysisFull = new("AnalysisMetaboData",rawData = RawMetaFull,
                    obs = FieldsOfInterest,annotation = AnnotFull,annotGroups = c("Treat"),actSwitchHour = 7)
 
-# AnalysisFull@data <- AnalysisFull@data %>% mutate(UTC = dmy_hm(paste(Date, Time))) %>% mutate(UTC_rel = difftime(UTC, inj_time[`Animal No.`][[1]])/dminutes(x=5))
+AnalysisFull@data <- AnalysisFull@data %>% mutate(UTC = dmy_hm(paste(Date, Time))) %>% mutate(UTC_rel = difftime(UTC, inj_time[`Animal No.`][[1]])/dminutes(x=5))
 
 time <- data.frame(AnalysisFull@data$MyTime, AnalysisFull@data$RelDay)
 print("Full Analysis")
@@ -104,26 +104,25 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
     
     ## Nights
     tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
-                      group = "Treat",hourWin = c(19,7),timWind=c(0,0.5),control = "cd",
+                      group = "Treat",hourWin = c(19,7),timWind=c(0,0.5),control = "c",
                       cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
     
+    tmpResDailyN <- tmpResDailyD <- tmpResDaily
+    tmpResDailyN@rawdata <- tmpResDailyN@rawdata %>% filter(Sun == "night")
+    tmpResDailyD@rawdata <- tmpResDailyD@rawdata %>% filter(Sun == "day")
     # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," night",
     #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
     #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
     
-    tmp3 <- metaboDailyPlot2(tmpResDaily, mainTitle = paste(Field," night",
+    tmp3 <- metaboDailyPlot2(tmpResDailyN, mainTitle = paste(Field," night",
                                                     "\npval_keto=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2)))
     
     # Days
-    tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
-                      group = "Treat",hourWin = c(7,19),timWind=c(0,0.5),control = "cd",
-                      cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
-    
     
     # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," day",
     #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
     #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
-    
+
     tmp4 <- metaboDailyPlot2(tmpResDaily,mainTitle = paste(Field," day",
                                                    "\npval_keto=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2)))
     
