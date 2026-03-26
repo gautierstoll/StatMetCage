@@ -14,7 +14,7 @@ setOldClass("TukeyHSD")
 setOldClass("multitcomp")
 NULL
 
-<<<<<<< HEAD
+
 # function plage
 plage <- function(value, i=0){
   res <- c()
@@ -34,12 +34,6 @@ plage <- function(value, i=0){
 }
 
 
-
-
-
-=======
-test <- function(){print("test")}
->>>>>>> 83e0ad0 (test commit)
 
 
 #' Class for linear modeling of temporal mean
