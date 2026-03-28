@@ -139,7 +139,6 @@ print(result)
 dev.off()
 
 
-test
 
 
 
