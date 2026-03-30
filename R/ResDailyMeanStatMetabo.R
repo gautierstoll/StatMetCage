@@ -16,11 +16,11 @@ NULL
 
 
 # function plage
-plage <- function(value, i=0){
-  res <- c()
+plage <- function(value){
+  i <- 0
   tmp <- value[1]
+  res <- vector()
   for (val in value){
-    # print(val)
     if (val == tmp){
       res <- c(res, i)
     }
@@ -124,7 +124,8 @@ setMethod( f="initialize",
                dataDF$activity = as.integer(((as.integer(dataDF$MyTime)/3600)%%24 > hourWin[1]) | ((as.integer(dataDF$MyTime)/3600)%%24 < hourWin[2]))
              }
              dataDF2 <- dataDF %>% as_tibble %>% mutate(absolutDay = as.integer((unclass(MyTime)/3600)/24), RelDay2 = as.factor(floor(RelDay)))
-             dataDF2 <- dataDF2 %>% group_by(Animal) %>% mutate(period = plage(Sun))
+             dataDF2 <- dataDF2 %>% group_by(Animal) %>% mutate(period = as.factor(paste(plage(Sun), "-", Sun)))
+             levels(dataDF2$period) <- str_sort(levels(dataDF2$period), numeric = TRUE)
               dataDF4Lm = do.call(rbind,
                by(dataDF,dataDF$Animal,function(subData){if (cumul) {
                  subDataObs = subData$Observation[which(subData$activity == 1)]
@@ -288,14 +289,13 @@ setMethod( f="metaboDailyPlot2",
              gg <- ggplot(plotDf, aes(x = Group, y = meanObs, color = Group)) +
                geom_boxplot(outlier.shape = NA) +
                geom_point(position = position_jitterdodge()) +
-               ggtitle(mainTitle) +
                stat_anova_test() +
                theme_bw()
              
-             p1 <- gg + stat_pvalue_manual(plotDf_stat_0)
-             p2 <- gg + stat_pvalue_manual(plotDf_stat_1) + facet_wrap(~ RelDay)
+             p1 <- gg + stat_pvalue_manual(plotDf_stat_0) + ggtitle(paste(mainTitle,"All values"))
+             p2 <- gg + stat_pvalue_manual(plotDf_stat_1) + ggtitle(paste(mainTitle,"split by relative day")) + facet_wrap(~ RelDay)
              
-             plotDf <- x@rawdata %>% group_by(Group, Animal, period) %>%
+             plotDf <- x@rawdata %>% group_by(Group, Animal, period, Sun) %>%
                summarise(meanObs = mean(Observation, na.rm = TRUE), .groups = "keep") %>%
                # rename(Time = `floor(TimeWindow)`)
                rename(Time = period)
@@ -310,7 +310,7 @@ setMethod( f="metaboDailyPlot2",
              p4 <- ggplot(plotDf, aes(x = Group, y = meanObs, color = Group)) +
                geom_boxplot(outlier.shape = NA) +
                geom_point(position = position_jitterdodge()) +
-               ggtitle(mainTitle) +
+               ggtitle(paste(mainTitle, "values by period")) +
                stat_kruskal_test() +
                theme_bw() +
                facet_wrap(~ Time)

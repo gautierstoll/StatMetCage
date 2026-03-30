@@ -1,4 +1,4 @@
-setwd("~/Git/StatMetCage")
+setwd("~/Documents/Git/StatMetCage")
 library(tcltk)
 library(tidyverse)
 library(StatMetCage)
@@ -11,13 +11,13 @@ source("R/ResDailyMeanStatMetabo.R")
 nbcore <- parallel::detectCores()
 
 # load tables #####
-# FileList <- tk_choose.files()
-FileList <- c(
-  "~/Desktop/Last_NoNF/03112025.csv",
-  "~/Desktop/Last_NoNF/01112025.csv",
-  "~/Desktop/Last_NoNF/26102025.csv",
-  "~/Desktop/Last_NoNF/30102025.csv"
-)
+FileList <- tk_choose.files()
+# FileList <- c(
+#   "~/Desktop/Last_NoNF/03112025.csv",
+#   "~/Desktop/Last_NoNF/01112025.csv",
+#   "~/Desktop/Last_NoNF/26102025.csv",
+#   "~/Desktop/Last_NoNF/30102025.csv"
+# )
 
 inj_time <- list(dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:46"),
                  dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),
@@ -104,7 +104,7 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
     
     ## Nights
     tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
-                      group = "Treat",hourWin = c(19,7),timWind=c(0,0.5),control = "c",
+                      group = "Treat",hourWin = c(19,7),timWind=c(0,0.5),control = "cd",
                       cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
     
     tmpResDailyN <- tmpResDailyD <- tmpResDaily
@@ -114,14 +114,8 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
     #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
     #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
     
-    tmp3 <- metaboDailyPlot2(tmpResDailyN, mainTitle = paste(Field," night",
-                                                    "\npval_keto=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2)))
-    
-    # Days
-    
-    # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," day",
-    #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
-    #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
+    tmp3 <- metaboDailyPlot2(x = tmpResDaily, mainTitle = "")
+
 
     tmp4 <- metaboDailyPlot2(tmpResDaily,mainTitle = paste(Field," day",
                                                    "\npval_keto=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2)))
