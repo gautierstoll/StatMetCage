@@ -311,8 +311,9 @@ setMethod( f="metaboDailyPlot2",
                geom_boxplot(outlier.shape = NA) +
                geom_point(position = position_jitterdodge()) +
                ggtitle(paste(mainTitle, "values by period")) +
-               stat_kruskal_test() +
+               stat_kruskal_test(label.y.npc = 0.9) +
                theme_bw() +
+               ylim(c(0,max(plotDf$meanObs)*1.2)) +
                facet_wrap(~ Time)
              
              return(list(p1, p2, p4))
