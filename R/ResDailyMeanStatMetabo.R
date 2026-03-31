@@ -125,7 +125,7 @@ setMethod( f="initialize",
              }
              dataDF2 <- dataDF %>% as_tibble %>% mutate(absolutDay = as.integer((unclass(MyTime)/3600)/24), RelDay2 = as.factor(floor(RelDay)))
              dataDF2 <- dataDF2 %>% group_by(Animal) %>% mutate(period = as.factor(paste(plage(Sun), "-", Sun)))
-             levels(dataDF2$period) <- str_sort(levels(dataDF2$period), numeric = TRUE)
+             dataDF2$period <- factor(dataDF2$period, levels = str_sort(levels(dataDF2$period), numeric = TRUE))
               dataDF4Lm = do.call(rbind,
                by(dataDF,dataDF$Animal,function(subData){if (cumul) {
                  subDataObs = subData$Observation[which(subData$activity == 1)]
@@ -289,7 +289,7 @@ setMethod( f="metaboDailyPlot2",
              gg <- ggplot(plotDf, aes(x = Group, y = meanObs, color = Group)) +
                geom_boxplot(outlier.shape = NA) +
                geom_point(position = position_jitterdodge()) +
-               stat_anova_test() +
+               stat_anova_test(label.y.npc = 0.9) +
                theme_bw()
              
              p1 <- gg + stat_pvalue_manual(plotDf_stat_0) + ggtitle(paste(mainTitle,"All values"))

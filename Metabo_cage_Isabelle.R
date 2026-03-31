@@ -102,25 +102,26 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
     try(tmp1 <- metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "RelDay"))
     # try(tmp2 <- metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
     
-    ## Nights
+    
     tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
                       group = "Treat",hourWin = c(19,7),timWind=c(0,0.5),control = "cd",
                       cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
     
-    tmpResDailyN <- tmpResDailyD <- tmpResDaily
-    tmpResDailyN@rawdata <- tmpResDailyN@rawdata %>% filter(Sun == "night")
-    tmpResDailyD@rawdata <- tmpResDailyD@rawdata %>% filter(Sun == "day")
+    tmp2 <- metaboDailyPlot2(x = tmpResDaily, mainTitle = "All")
     # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," night",
     #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
     #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
     
-    tmp3 <- metaboDailyPlot2(x = tmpResDaily, mainTitle = "")
+    tmp <- tmpResDaily
+    tmp@rawdata <- tmp@rawdata %>% filter(Sun == "night")
+    tmp3 <- metaboDailyPlot2(x = tmp, mainTitle = "night")
 
-
-    tmp4 <- metaboDailyPlot2(tmpResDaily,mainTitle = paste(Field," day",
-                                                   "\npval_keto=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2)))
     
-    return(list(tmp1, tmp3, tmp4))
+    tmp <- tmpResDaily
+    tmp@rawdata <- tmp@rawdata %>% filter(Sun == "day")
+    tmp4 <- metaboDailyPlot2(x = tmp, mainTitle = "day")
+    
+    return(list(tmp1, tmp2, tmp3, tmp4))
 }
 
 # Cleanup
