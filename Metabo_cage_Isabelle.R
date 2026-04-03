@@ -19,14 +19,14 @@ FileList <- tk_choose.files()
 #   "~/Desktop/Last_NoNF/30102025.csv"
 # )
 
-inj_time <- list(dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:46"),
-                 dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),
-                 dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:50"),
-                 dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 17:52"),
-                 dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:52"),
-                 dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:53"),
-                 dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:45"),
-                 dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:47"))
+# inj_time <- list(dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:46"),
+#                  dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),
+#                  dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:50"),
+#                  dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 18:00"),dmy_hm("31-10-2025 17:52"),
+#                  dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:45"),dmy_hm("02-11-2025 17:52"),
+#                  dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:54"),dmy_hm("02-11-2025 17:53"),
+#                  dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:48"),dmy_hm("04-11-2025 17:45"),
+#                  dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:52"),dmy_hm("04-11-2025 17:47"))
 
 # inj_time <- list(dmy_hm("18-10-2025 18:38"),dmy_hm("18-10-2025 18:38"),dmy_hm("18-10-2025 18:38"),dmy_hm("18-10-2025 18:44"),
 #                  dmy_hm("18-10-2025 18:46"),dmy_hm("18-10-2025 18:46"),dmy_hm("18-10-2025 18:46"),dmy_hm("18-10-2025 18:45"),
@@ -68,7 +68,9 @@ colnames(RawMetaFull@header) <- c("Box","Animal","Weight","Treat","Text2","Text3
 
 
 ## Combine annotation
+if (any(duplicated(RawMetaFull@header$Animal))){RawMetaFull@header <- RawMetaFull@header %>% mutate(Animal_old = Animal, Animal = row_number())}
 AnnotFull = RawMetaFull@header
+
 
 ## Define fields of interest
 FieldsOfInterest = names(RawMetaFull@data)[c(1,2,14,17,20,21,40,41,24:39)]
@@ -76,9 +78,11 @@ FieldsOfInterest <- c(FieldsOfInterest,"deltaFeed","deltaDrink")
 
 ## Instanciate an analysis object
 AnalysisFull = new("AnalysisMetaboData",rawData = RawMetaFull,
-                   obs = FieldsOfInterest,annotation = AnnotFull,annotGroups = c("Treat"),actSwitchHour = 7)
+                   obs = FieldsOfInterest,annotation = AnnotFull,
+                   annotGroups = c("Treat"),actSwitchHour = 7)
 
-AnalysisFull@data <- AnalysisFull@data %>% mutate(UTC = dmy_hm(paste(Date, Time))) %>% mutate(UTC_rel = difftime(UTC, inj_time[`Animal No.`][[1]])/dminutes(x=5))
+AnalysisFull@data <- AnalysisFull@data %>% mutate(UTC = dmy_hm(paste(Date, Time))) 
+# if(!is.null(inj_time)) {AnalysisFull@data <- AnalysisFull@data %>% mutate(UTC_rel = difftime(UTC, inj_time[`Animal No.`][[1]])/dminutes(x=5))}
 
 time <- data.frame(AnalysisFull@data$MyTime, AnalysisFull@data$RelDay)
 print("Full Analysis")
@@ -87,7 +91,7 @@ print("Full Analysis")
 metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "RelDay")
 # try(metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
 AnalysisFull_filter <- AnalysisFull
-# AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% c(9,10,11,14,15)))
+AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% c(49,10,11,14,15)))
 metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "RelDay")
 # try(metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
 
@@ -104,7 +108,7 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
     
     
     tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
-                      group = "Treat",hourWin = c(19,7),timWind=c(0,0.5),control = "cd",
+                      group = "Treat",hourWin = c(19,7),timWind=c(0,0.5),control = "c",
                       cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
     
     tmp2 <- metaboDailyPlot2(x = tmpResDaily, mainTitle = paste(Field, "Complet"))

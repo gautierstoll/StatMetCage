@@ -289,7 +289,7 @@ setMethod( f="metaboDailyPlot2",
              gg <- ggplot(plotDf, aes(x = Group, y = meanObs, color = Group)) +
                geom_boxplot(outlier.shape = NA) +
                geom_point(position = position_jitterdodge()) +
-               stat_anova_test(label.y.npc = 0.9) +
+               stat_kruskal_test(label.y.npc = 0.9) +
                theme_bw()
              
              p1 <- gg + stat_pvalue_manual(plotDf_stat_0) + ggtitle(paste(mainTitle,"All values"))
@@ -299,6 +299,8 @@ setMethod( f="metaboDailyPlot2",
                summarise(meanObs = mean(Observation, na.rm = TRUE), .groups = "keep") %>%
                # rename(Time = `floor(TimeWindow)`)
                rename(Time = period)
+             
+             plotDf_stat_2 <- plotDf %>% filter(!is.na(meanObs)) %>% group_by(Time) %>% tukey_hsd(meanObs ~ Group) %>% add_y_position
              
              # p3 <- ggplot(plotDf %>% filter(Time==0), aes(x = Group, y = meanObs, color = Group)) +
              #   geom_boxplot(outlier.shape = NA) +
@@ -313,8 +315,9 @@ setMethod( f="metaboDailyPlot2",
                ggtitle(paste(mainTitle, "values by period")) +
                stat_kruskal_test(label.y.npc = 0.9) +
                theme_bw() +
-               ylim(c(0,max(plotDf$meanObs)*1.2)) +
-               facet_wrap(~ Time)
+               ylim(c(0,max(plotDf$meanObs)*1.5)) +
+               facet_wrap(~ Time) +
+               stat_pvalue_manual(plotDf_stat_2)
              
              return(list(p1, p2, p4))
            })
