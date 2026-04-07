@@ -55,6 +55,13 @@ RawMetaboData <- sapply(FileList, function(File){
 RawMetaFull <- new("RawMetaboData")
 RawMetaFull@header <- do.call("rbind", lapply(RawMetaboData, function(data) data@header))
 RawMetaFull@data <- do.call("rbind", lapply(RawMetaboData, function(data) data@data))
+## Combine annotation
+if (!any(duplicated(RawMetaFull@header$`Animal No.`))){
+  RawMetaFull@header <- RawMetaFull@header %>% mutate(Animal_old = `Animal No.`, `Animal No.` = row_number())
+  RawMetaFull@data <- RawMetaFull@data %>% mutate(Animal_old = `Animal No.`, `Animal No.` = as.factor(paste(OriginDate, `Animal No.`)))
+  levels(RawMetaFull@data$`Animal No.`) <- seq(1:length(levels(RawMetaFull@data$`Animal No.`)))
+}
+
 
 
 RawMetaFull@data = RawMetaFull@data %>% mutate_at(vars(!contains("Date") & !contains("Time")), function(x) as.numeric(gsub(",",".",x)))
@@ -65,10 +72,6 @@ RawMetaFull@data <- RawMetaFull@data %>%
 
 ## extract annotation table from tables
 colnames(RawMetaFull@header) <- c("Box","Animal","Weight","Treat","Text2","Text3", "Date", "Time")
-
-
-## Combine annotation
-if (any(duplicated(RawMetaFull@header$Animal))){RawMetaFull@header <- RawMetaFull@header %>% mutate(Animal_old = Animal, Animal = row_number())}
 AnnotFull = RawMetaFull@header
 
 
