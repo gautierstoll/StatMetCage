@@ -71,7 +71,7 @@ RawMetaFull@data <- RawMetaFull@data %>%
   mutate(deltaFeed = if("Feed" %in% names(.)) {Feed - lag(Feed)})
 
 ## extract annotation table from tables
-colnames(RawMetaFull@header) <- c("Box","Animal","Weight","Treat","Text2","Text3", "Date", "Time")
+colnames(RawMetaFull@header) <- c("Box","Animal","Weight","Treat","Text2","Text3", "Date", "Time", )
 AnnotFull = RawMetaFull@header
 
 
@@ -94,7 +94,12 @@ print("Full Analysis")
 metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "RelDay")
 # try(metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
 AnalysisFull_filter <- AnalysisFull
-# AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% c(49,10,11,14,15)))
+
+# automatic filter 
+mice_rm <- AnalysisFull_filter@data %>% group_by(`Animal No.`, Treat) %>% summarize(Feed = max(Feed))
+mice_rm <- subset(mice_rm, mice_rm$Feed < (mice_rm %>% filter(Treat == "c") %>% select(Feed) %>% min))$`Animal No.`
+
+AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% mice_rm))
 metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "RelDay")
 # try(metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
 
