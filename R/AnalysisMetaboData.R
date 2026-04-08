@@ -47,8 +47,11 @@ setMethod(f="initialize",
             dataDF = rawData4A[c(animal,obs)]
             dataDF$MyTime =  lubridate::dmy_hms(paste(unlist(rawData4A[date])," ",unlist(rawData4A[time]),":00",sep=""))
             
-            dataDF$RelDay = unlist(by(dataDF,dataDF[[animal]], ## double [  create a vector
-                                       function(SData){return((unclass(SData$MyTime) - unclass(SData$MyTime)[1])/(24*3600))}))
+            # dataDF$RelDay = unlist(by(dataDF,dataDF[[animal]], ## double [  create a vector
+            #                            function(SData){return((unclass(SData$MyTime) - unclass(SData$MyTime)[1])/(24*3600))}))
+            
+            dataDF <- dataDF %>% group_by(get(animal)) %>% mutate(RelDay = unclass(MyTime - MyTime[1])/(24*3600))
+            
             dataDF$Sun = c("day","night")[as.integer((((unclass(dataDF$MyTime)/3600)%%24-actSwitchHour)/12)%%2)+1] ## same as activity
             dataDF$OscillActivity = sin((unclass(dataDF$MyTime)/3600-actSwitchHour)/12*pi)
             

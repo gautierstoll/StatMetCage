@@ -3,7 +3,7 @@
 ## ResDailyMeanStatMetabo ####
 
 #' @include AnalysisMetaboData.R
-library(rstatix)
+library("rstatix")
 library("tidyverse") # add for ResDailyMeanStatMetabo2
 library("ggplot2") # add for ResDailyMeanStatMetabo2
 library("ggpubr")
@@ -284,12 +284,17 @@ setMethod( f="metaboDailyPlot2",
            signature = "ResDailyMeanStatMetabo",
            definition = function(x,signif=T,pvalStar = T,mainTitle = ""){
              plotDf = x@lmeRes2$data
-             plotDf_stat_0 <- x@dataProcess %>% tukey_hsd(formula = meanObs ~ Group) %>% add_y_position
-             plotDf_stat_1 <- x@dataProcess %>% filter(!is.na(meanObs)) %>% group_by(RelDay) %>% tukey_hsd(meanObs ~ Group) %>% add_y_position
+             
+             plotDf_stat_0 <- plotDf %>% tukey_hsd(formula = meanObs ~ Group) %>% add_y_position
+             plotDf_stat_1 <- plotDf %>% filter(!is.na(meanObs)) %>% group_by(RelDay) %>% tukey_hsd(meanObs ~ Group) %>% add_y_position
+             
+             # plotDf_stat_0 <- dunn_test(formula = meanObs ~ Group, data = x@dataProcess) %>% add_y_position
+             # plotDf_stat_1 <- x@dataProcess %>% select(Group, meanObs, RelDay) %>% filter(RelDay < 2) %>% group_by(RelDay) %>% dunn_test(meanObs ~ Group) %>% add_y_position
+               
              gg <- ggplot(plotDf, aes(x = Group, y = meanObs, color = Group)) +
                geom_boxplot(outlier.shape = NA) +
                geom_point(position = position_jitterdodge()) +
-               stat_kruskal_test(label.y.npc = 0.9) +
+               stat_anova_test(label.y.npc = 0.9) +
                theme_bw()
              
              p1 <- gg + stat_pvalue_manual(plotDf_stat_0) + ggtitle(paste(mainTitle,"All values"))
@@ -301,6 +306,7 @@ setMethod( f="metaboDailyPlot2",
                rename(Time = period)
              
              plotDf_stat_2 <- plotDf %>% filter(!is.na(meanObs)) %>% group_by(Time) %>% tukey_hsd(meanObs ~ Group) %>% add_y_position
+             # plotDf_stat_2 <- plotDf %>% filter(!is.na(meanObs)) %>% group_by(Time) %>% dunn_test(meanObs ~ Group) %>% add_y_position
              
              # p3 <- ggplot(plotDf %>% filter(Time==0), aes(x = Group, y = meanObs, color = Group)) +
              #   geom_boxplot(outlier.shape = NA) +
@@ -313,7 +319,7 @@ setMethod( f="metaboDailyPlot2",
                geom_boxplot(outlier.shape = NA) +
                geom_point(position = position_jitterdodge()) +
                ggtitle(paste(mainTitle, "values by period")) +
-               stat_kruskal_test(label.y.npc = 0.9) +
+               stat_anova_test(label.y.npc = 0.9) +
                theme_bw() +
                ylim(c(0,max(plotDf$meanObs)*1.5)) +
                facet_wrap(~ Time) +

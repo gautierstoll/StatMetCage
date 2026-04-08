@@ -56,7 +56,7 @@ RawMetaFull <- new("RawMetaboData")
 RawMetaFull@header <- do.call("rbind", lapply(RawMetaboData, function(data) data@header))
 RawMetaFull@data <- do.call("rbind", lapply(RawMetaboData, function(data) data@data))
 ## Combine annotation
-if (!any(duplicated(RawMetaFull@header$`Animal No.`))){
+if (any(duplicated(RawMetaFull@header$`Animal No.`))){
   RawMetaFull@header <- RawMetaFull@header %>% mutate(Animal_old = `Animal No.`, `Animal No.` = row_number())
   RawMetaFull@data <- RawMetaFull@data %>% mutate(Animal_old = `Animal No.`, `Animal No.` = as.factor(paste(OriginDate, `Animal No.`)))
   levels(RawMetaFull@data$`Animal No.`) <- seq(1:length(levels(RawMetaFull@data$`Animal No.`)))
@@ -94,7 +94,7 @@ print("Full Analysis")
 metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "RelDay")
 # try(metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
 AnalysisFull_filter <- AnalysisFull
-AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% c(49,10,11,14,15)))
+# AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% c(49,10,11,14,15)))
 metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "RelDay")
 # try(metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
 
