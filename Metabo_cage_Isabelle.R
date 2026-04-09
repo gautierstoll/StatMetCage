@@ -71,7 +71,7 @@ RawMetaFull@data <- RawMetaFull@data %>%
   mutate(deltaFeed = if("Feed" %in% names(.)) {Feed - lag(Feed)})
 
 ## extract annotation table from tables
-colnames(RawMetaFull@header) <- c("Box","Animal","Weight","Treat","Text2","Text3", "Date", "Time", )
+colnames(RawMetaFull@header) <- c("Box","Animal","Weight","Treat","Text2","Text3", "Date", "Time")
 AnnotFull = RawMetaFull@header
 
 
@@ -121,6 +121,8 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
                       cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
     
     tmp2 <- metaboDailyPlot2(x = tmpResDaily, mainTitle = paste(Field, "Complet"))
+    
+    
     # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," night",
     #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
     #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))

@@ -302,18 +302,10 @@ setMethod( f="metaboDailyPlot2",
              
              plotDf <- x@rawdata %>% group_by(Group, Animal, period, Sun) %>%
                summarise(meanObs = mean(Observation, na.rm = TRUE), .groups = "keep") %>%
-               # rename(Time = `floor(TimeWindow)`)
                rename(Time = period)
              
              plotDf_stat_2 <- plotDf %>% filter(!is.na(meanObs)) %>% group_by(Time) %>% tukey_hsd(meanObs ~ Group) %>% add_y_position
              # plotDf_stat_2 <- plotDf %>% filter(!is.na(meanObs)) %>% group_by(Time) %>% dunn_test(meanObs ~ Group) %>% add_y_position
-             
-             # p3 <- ggplot(plotDf %>% filter(Time==0), aes(x = Group, y = meanObs, color = Group)) +
-             #   geom_boxplot(outlier.shape = NA) +
-             #   geom_point(position = position_jitterdodge()) +
-             #   ggtitle(mainTitle) +
-             #   stat_kruskal_test() +
-             #   theme_bw()
              
              p4 <- ggplot(plotDf, aes(x = Group, y = meanObs, color = Group)) +
                geom_boxplot(outlier.shape = NA) +
@@ -327,3 +319,79 @@ setMethod( f="metaboDailyPlot2",
              
              return(list(p1, p2, p4))
            })
+
+
+
+## metaboDailyPlot3 ####
+
+setGeneric(
+  name = "metaboDailyPlot3",
+  def = function(x,signif, TimeWind,pvalStar = T,mainTitle = ""){standardGeneric("metaboDailyPlot2")}
+)
+
+#' Plot time dependant metabolic data V2
+#' @param x ResDailyMeanStatMetabo S4 object
+#' @param signif true for significance pairwise annotation
+#' @param TimeWind plot and analysis window
+#' @param pvalStar significant annotation with stars instead of p-value
+#' @param mainTitle title of the plot
+#' @param type type of plot: data, data.model or model
+#' @export
+setMethod( f="metaboDailyPlot3",
+           signature = "ResDailyMeanStatMetabo",
+           definition = function(x,signif=T,TimeWind,pvalStar = T,mainTitle = ""){
+             plotDf = x@lmeRes2$data
+             plotDf <- x@rawdata %>%
+               filter(TimeWindow >= TimeWind[1] & TimeWindow <= TimeWind[2]) %>%
+               group_by(Group, TimeWindow) %>%
+               summarise(Mean_obs = mean(Observation))
+             
+             AUC <- plotDf %>% group_by(Group) %>% summarise(AUC = bayestestR::auc(TimeWindow, Mean_obs, method = "trapezoid"))
+             pROC::auc()
+             plotDf %>% group_by(Group) %>% summarise(AUC = pROC::auc( ~ TimeWindow, method = "trapezoid"))
+             
+             library(tidyverse)
+             library(broom)
+             
+             # Run KS test for each pair
+             pairwise_results <- tibble(
+               pair = combn(unique(plotDf$Group), 2, simplify = FALSE)
+             )  %>%
+               mutate(
+                 group1 = map(pair,1),
+                 group2 = map(pair,2)
+               ) %>%
+               mutate(test = map2(group1, group2, ~ {
+                 vec1 <- plotDf$Mean_obs[plotDf$Group == .x]
+                 vec2 <- plotDf$Mean_obs[plotDf$Group == .y]
+                 tidy(ks.test(vec1, vec2))
+               })) %>% 
+               unnest(test) %>%
+               mutate(p.adj = p.adjust(p.value, method = "bonferroni"))
+             
+             plotDf_stat_0 <- plotDf %>% tukey_hsd(formula = meanObs ~ Group) %>% add_y_position
+             plotDf_stat_1 <- plotDf %>% filter(!is.na(meanObs)) %>% group_by(RelDay) %>% tukey_hsd(meanObs ~ Group) %>% add_y_position
+             
+             # plotDf_stat_0 <- dunn_test(formula = meanObs ~ Group, data = x@dataProcess) %>% add_y_position
+             # plotDf_stat_1 <- x@dataProcess %>% select(Group, meanObs, RelDay) %>% filter(RelDay < 2) %>% group_by(RelDay) %>% dunn_test(meanObs ~ Group) %>% add_y_position
+
+             gg <- ggplot(plotDf, aes(x = TimeWindow, y = Mean_obs, colour = Group)) +
+               geom_line() +
+               geom_line(stat="smooth",method = "lm", formula = y ~ x, alpha = 0.5, size = 1.5) +
+               annotate("text", x=min(plotDf$TimeWindow), y=max(plotDf$Mean_obs), label= paste(c(pairwise_results$group1, pairwise_results$group2, pairwise_results$p.adj)))+
+               theme_bw()
+             gg
+             p1 <- gg + stat_pvalue_manual(plotDf_stat_0) + ggtitle(paste(mainTitle,"All values"))
+            
+             return(p1)
+           })
+
+
+
+
+
+
+
+
+
+
