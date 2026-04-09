@@ -99,6 +99,7 @@ AnalysisFull_filter <- AnalysisFull
 mice_rm <- AnalysisFull_filter@data %>% group_by(`Animal No.`, Treat) %>% summarize(Feed = max(Feed))
 mice_rm <- subset(mice_rm, mice_rm$Feed < (mice_rm %>% filter(Treat == "c") %>% select(Feed) %>% min))$`Animal No.`
 
+# filtered plot
 AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% mice_rm))
 metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "RelDay")
 # try(metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
