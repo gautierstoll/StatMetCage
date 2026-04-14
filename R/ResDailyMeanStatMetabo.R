@@ -329,6 +329,11 @@ setGeneric(
   def = function(x,signif, TimeWind,pvalStar = T,mainTitle = ""){standardGeneric("metaboDailyPlot2")}
 )
 
+setGeneric(
+  name = "metaboDailyPlot3",
+  def = function(x,signif, TimeWind,pvalStar = T,mainTitle = ""){standardGeneric("metaboDailyPlot3")}
+)
+
 #' Plot time dependant metabolic data V2
 #' @param x ResDailyMeanStatMetabo S4 object
 #' @param signif true for significance pairwise annotation
@@ -340,51 +345,49 @@ setGeneric(
 setMethod( f="metaboDailyPlot3",
            signature = "ResDailyMeanStatMetabo",
            definition = function(x,signif=T,TimeWind,pvalStar = T,mainTitle = ""){
-             plotDf = x@lmeRes2$data
+             # plotDf = x@lmeRes2$data
              plotDf <- x@rawdata %>%
                filter(TimeWindow >= TimeWind[1] & TimeWindow <= TimeWind[2]) %>%
-               group_by(Group, TimeWindow) %>%
-               summarise(Mean_obs = mean(Observation))
+               ungroup %>%
+               # group_by(Group, TimeWindow) %>%
+               summarise(Mean_obs = mean(Observation), .by = c(Group, TimeWindow))
              
-             AUC <- plotDf %>% group_by(Group) %>% summarise(AUC = bayestestR::auc(TimeWindow, Mean_obs, method = "trapezoid"))
-             pROC::auc()
-             plotDf %>% group_by(Group) %>% summarise(AUC = pROC::auc( ~ TimeWindow, method = "trapezoid"))
-             
-             library(tidyverse)
-             library(broom)
-             
-             # Run KS test for each pair
-             pairwise_results <- tibble(
-               pair = combn(unique(plotDf$Group), 2, simplify = FALSE)
-             )  %>%
-               mutate(
-                 group1 = map(pair,1),
-                 group2 = map(pair,2)
-               ) %>%
-               mutate(test = map2(group1, group2, ~ {
-                 vec1 <- plotDf$Mean_obs[plotDf$Group == .x]
-                 vec2 <- plotDf$Mean_obs[plotDf$Group == .y]
-                 tidy(ks.test(vec1, vec2))
-               })) %>% 
-               unnest(test) %>%
-               mutate(p.adj = p.adjust(p.value, method = "bonferroni"))
-             
-             plotDf_stat_0 <- plotDf %>% tukey_hsd(formula = meanObs ~ Group) %>% add_y_position
-             plotDf_stat_1 <- plotDf %>% filter(!is.na(meanObs)) %>% group_by(RelDay) %>% tukey_hsd(meanObs ~ Group) %>% add_y_position
+             # AUC <- plotDf %>% group_by(Group) %>% summarise(AUC = bayestestR::auc(TimeWindow, Mean_obs, method = "trapezoid"))
+             # plotDf %>% group_by(Group) %>% summarise(AUC = pROC::auc( ~ TimeWindow, method = "trapezoid"))
+             library(statmod)
+             test <- x@rawdata %>% pivot_wider(id_cols = c(Animal, Group), values_from = Observation, names_from = TimeWindow) %>% ungroup()
+             test2 <- compareGrowthCurves(group = test$Group, test %>% select(!c("Animal", "Group")) %>% as.matrix, levels=NULL, nsim=10000, fun=meanT, times=NULL,
+                                          verbose=TRUE, adjust="holm", n0=0.5)
+             test2
              
              # plotDf_stat_0 <- dunn_test(formula = meanObs ~ Group, data = x@dataProcess) %>% add_y_position
              # plotDf_stat_1 <- x@dataProcess %>% select(Group, meanObs, RelDay) %>% filter(RelDay < 2) %>% group_by(RelDay) %>% dunn_test(meanObs ~ Group) %>% add_y_position
-
-             gg <- ggplot(plotDf, aes(x = TimeWindow, y = Mean_obs, colour = Group)) +
-               geom_line() +
-               geom_line(stat="smooth",method = "lm", formula = y ~ x, alpha = 0.5, size = 1.5) +
-               annotate("text", x=min(plotDf$TimeWindow), y=max(plotDf$Mean_obs), label= paste(c(pairwise_results$group1, pairwise_results$group2, pairwise_results$p.adj)))+
+             
+             gg <- ggplot(plotDf, aes(x = TimeWindow, y = Observation, colour = Group)) +
+               geom_line(aes(group = Animal), alpha = 0.25) +
+               geom_smooth(method = "glm", se = TRUE, level = 0.99) +
+               # geom_line(stat="smooth",method = "lm", formula = y ~ x, alpha = 0.5, size = 1.5) +
+               # annotate("text", x=min(plotDf$TimeWindow)*1.1, y=max(plotDf$Mean_obs), label= paste(unlist(pairwise_results$group1), "vs", unlist(pairwise_results$group2), ", pval = ",formatC(pairwise_results$p.adj, format = "g", digits = 3), collapse = "\n"))+
+               # annotate("text", x=min(plotDf$TimeWindow)*1.1, y=max(plotDf$Mean_obs), label= paste(unlist(test2$Group1), "vs", unlist(test2$Group2), ", pval = ",formatC(test2$adj.P.Value, format = "g", digits = 3), collapse = "\n"))+
                theme_bw()
              gg
-             p1 <- gg + stat_pvalue_manual(plotDf_stat_0) + ggtitle(paste(mainTitle,"All values"))
-            
+             
+             test3 <- sapply(DescTools::Closest(plotDf$TimeWindow, c(1.3+(c(1.5,3,6,12)/12))), function(x) x[1])
+             plotDf %>% filter(TimeWindow %in% test3) |> count(Group, TimeWindow)
+             gg2 <- ggplot(plotDf %>% filter(TimeWindow %in% test3), aes(y = Observation, x = Group, colour = Group)) +
+               geom_boxplot(outliers = FALSE)+
+               geom_point(position = position_jitterdodge())+
+               stat_compare_means(method = "kruskal") +
+               theme_bw()
+             gg2
+             gg2 + facet_wrap(~ TimeWindow, nrow = 2)
+             
+             p1 <- gg + ggtitle(paste(mainTitle,"Time windows"))
+             
              return(p1)
            })
+
+
 
 
 
