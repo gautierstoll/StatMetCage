@@ -356,9 +356,17 @@ setMethod( f="metaboDailyPlot3",
              # plotDf %>% group_by(Group) %>% summarise(AUC = pROC::auc( ~ TimeWindow, method = "trapezoid"))
              library(statmod)
              test <- x@rawdata %>% pivot_wider(id_cols = c(Animal, Group), values_from = Observation, names_from = TimeWindow) %>% ungroup()
+             
+             lmer2.out  <- lme4::lmer(Observation ~ TimeWindow * Group + (1|Animal),data = plotDf)
+             stats::anova(lmer2.out)
+            
+             
              test2 <- compareGrowthCurves(group = test$Group, test %>% select(!c("Animal", "Group")) %>% as.matrix, levels=NULL, nsim=10000, fun=meanT, times=NULL,
                                           verbose=TRUE, adjust="holm", n0=0.5)
-             test2
+             
+             lmtest::grangertest(plotDf %>% filter(Group == "c") %>% select(Observation), plotDf %>% filter(Group == "d") %>% select(Observation))
+             lmtest::grangertest(plotDf %>% filter(Group == "c") %>% select(Observation), plotDf %>% filter(Group == "r") %>% select(Observation))
+             lmtest::grangertest(plotDf %>% filter(Group == "r") %>% select(Observation), plotDf %>% filter(Group == "d") %>% select(Observation))
              
              # plotDf_stat_0 <- dunn_test(formula = meanObs ~ Group, data = x@dataProcess) %>% add_y_position
              # plotDf_stat_1 <- x@dataProcess %>% select(Group, meanObs, RelDay) %>% filter(RelDay < 2) %>% group_by(RelDay) %>% dunn_test(meanObs ~ Group) %>% add_y_position
@@ -366,6 +374,15 @@ setMethod( f="metaboDailyPlot3",
              gg <- ggplot(plotDf, aes(x = TimeWindow, y = Observation, colour = Group)) +
                geom_line(aes(group = Animal), alpha = 0.25) +
                geom_smooth(method = "glm", se = TRUE, level = 0.99) +
+               # geom_line(stat="smooth",method = "lm", formula = y ~ x, alpha = 0.5, size = 1.5) +
+               # annotate("text", x=min(plotDf$TimeWindow)*1.1, y=max(plotDf$Mean_obs), label= paste(unlist(pairwise_results$group1), "vs", unlist(pairwise_results$group2), ", pval = ",formatC(pairwise_results$p.adj, format = "g", digits = 3), collapse = "\n"))+
+               # annotate("text", x=min(plotDf$TimeWindow)*1.1, y=max(plotDf$Mean_obs), label= paste(unlist(test2$Group1), "vs", unlist(test2$Group2), ", pval = ",formatC(test2$adj.P.Value, format = "g", digits = 3), collapse = "\n"))+
+               theme_bw()
+             gg
+             
+             gg <- ggplot(plotDf, aes(x = TimeWindow, y = Mean_obs, colour = Group)) +
+               geom_line() +
+               geom_smooth(method = "loess", se = TRUE, level = 0.99) +
                # geom_line(stat="smooth",method = "lm", formula = y ~ x, alpha = 0.5, size = 1.5) +
                # annotate("text", x=min(plotDf$TimeWindow)*1.1, y=max(plotDf$Mean_obs), label= paste(unlist(pairwise_results$group1), "vs", unlist(pairwise_results$group2), ", pval = ",formatC(pairwise_results$p.adj, format = "g", digits = 3), collapse = "\n"))+
                # annotate("text", x=min(plotDf$TimeWindow)*1.1, y=max(plotDf$Mean_obs), label= paste(unlist(test2$Group1), "vs", unlist(test2$Group2), ", pval = ",formatC(test2$adj.P.Value, format = "g", digits = 3), collapse = "\n"))+
