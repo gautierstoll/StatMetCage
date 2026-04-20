@@ -97,6 +97,7 @@ AnalysisFull_filter <- AnalysisFull
 
 # automatic filter 
 mice_rm <- AnalysisFull_filter@data %>% group_by(`Animal No.`, Treat) %>% summarize(Feed = max(Feed))
+print(mice_rm)
 mice_rm <- subset(mice_rm, mice_rm$Feed < (mice_rm %>% filter(Treat == "c") %>% select(Feed) %>% min))$`Animal No.`
 
 # filtered plot
@@ -114,7 +115,7 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
     
     try(tmp1 <- metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",labels = "Animal No.", Time_scale = "RelDay"))
     # try(tmp2 <- metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
-    
+
     
     tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
                       group = "Treat",hourWin = c(19,7),timWind=c(0,0.5),control = "c",
