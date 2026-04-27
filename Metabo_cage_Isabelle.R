@@ -63,7 +63,6 @@ if (any(duplicated(RawMetaFull@header$`Animal No.`))){
 }
 
 
-
 RawMetaFull@data = RawMetaFull@data %>% mutate_at(vars(!contains("Date") & !contains("Time")), function(x) as.numeric(gsub(",",".",x)))
 RawMetaFull@data <- RawMetaFull@data %>%
   group_by(`Animal No.`) %>%
@@ -96,9 +95,9 @@ metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Anim
 AnalysisFull_filter <- AnalysisFull
 
 # automatic filter 
-mice_rm <- AnalysisFull_filter@data %>% group_by(`Animal No.`, Treat) %>% summarize(Feed = max(Feed))
+mice_rm <- AnalysisFull_filter@data %>% group_by(`Animal No.`, Treat) %>% summarize(Feed = max(Feed)) %>% ungroup
 print(mice_rm)
-mice_rm <- subset(mice_rm, mice_rm$Feed < (mice_rm %>% filter(Treat == "c") %>% select(Feed) %>% min))$`Animal No.`
+mice_rm <- subset(mice_rm, mice_rm$Feed < (mice_rm %>% filter(Treat == "ct") %>% select(Feed) %>% min))$`Animal No.`
 
 # filtered plot
 AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% mice_rm))
