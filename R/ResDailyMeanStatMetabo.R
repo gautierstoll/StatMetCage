@@ -333,10 +333,6 @@ setMethod( f="metaboDailyPlot2",
 
 ## metaboDailyPlot3 ####
 
-setGeneric(
-  name = "metaboDailyPlot3",
-  def = function(x,signif, TimeWind,pvalStar = T,mainTitle = ""){standardGeneric("metaboDailyPlot2")}
-)
 
 setGeneric(
   name = "metaboDailyPlot3",
