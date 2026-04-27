@@ -117,7 +117,7 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
 
     
     tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
-                      group = "Treat",hourWin = c(19,7),timWind=c(0,0.5),control = "c",
+                      group = "Treat",hourWin = c(19,7),timWind=c(0,0.5),control = "ct",
                       cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
     
     tmp2 <- metaboDailyPlot2(x = tmpResDaily, mainTitle = paste(Field, "Complet"))

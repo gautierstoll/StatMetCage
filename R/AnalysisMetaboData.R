@@ -149,7 +149,7 @@ setMethod(f="metaboRawPlot2",
           signature = "AnalysisMetaboData",
           definition = function(x,observation,group = "Group",Time_scale = "RelDay",labels = NULL){
             gg <- ggplot(x@data %>% filter(!is.na(get(observation))), aes(x = get(Time_scale), y = get(observation), color = get(group)))+
-              geom_line(alpha = 0.5, aes(group = `Animal No.`)) +
+              geom_line(alpha = 0.25, aes(group = `Animal No.`)) +
               labs(x = Time_scale, y = observation, color = group) +
               ggtitle(observation) +
               theme_bw()+
