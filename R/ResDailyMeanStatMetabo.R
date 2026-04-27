@@ -284,21 +284,30 @@ setMethod( f="metaboDailyPlot2",
            signature = "ResDailyMeanStatMetabo",
            definition = function(x,signif=T,pvalStar = T,mainTitle = ""){
              plotDf = x@lmeRes2$data
+             plotDf.tmp <- x@lmeRes2$data %>% group_by(Group, Animal) %>% summarise(meanObs = mean(meanObs)) %>% ungroup()
              
-             plotDf_stat_0 <- plotDf %>% tukey_hsd(formula = meanObs ~ Group) %>% add_y_position
+             plotDf_stat_0 <- plotDf.tmp %>% tukey_hsd(formula = meanObs ~ Group) %>% add_y_position
              plotDf_stat_1 <- plotDf %>% filter(!is.na(meanObs)) %>% group_by(RelDay) %>% tukey_hsd(meanObs ~ Group) %>% add_y_position
              
              # plotDf_stat_0 <- dunn_test(formula = meanObs ~ Group, data = x@dataProcess) %>% add_y_position
              # plotDf_stat_1 <- x@dataProcess %>% select(Group, meanObs, RelDay) %>% filter(RelDay < 2) %>% group_by(RelDay) %>% dunn_test(meanObs ~ Group) %>% add_y_position
                
-             gg <- ggplot(plotDf, aes(x = Group, y = meanObs, color = Group)) +
+             p1 <- ggplot(plotDf.tmp, aes(x = Group, y = meanObs, color = Group)) +
                geom_boxplot(outlier.shape = NA) +
                geom_point(position = position_jitterdodge()) +
                stat_anova_test(label.y.npc = 0.9) +
                theme_bw()
              
-             p1 <- gg + stat_pvalue_manual(plotDf_stat_0) + ggtitle(paste(mainTitle,"All values"))
-             p2 <- gg + stat_pvalue_manual(plotDf_stat_1) + ggtitle(paste(mainTitle,"split by relative day")) + facet_wrap(~ RelDay)
+             p1 <- p1 + stat_pvalue_manual(plotDf_stat_0) + ggtitle(paste(mainTitle,"All values"))
+             
+             p2 <- ggplot(plotDf, aes(x = Group, y = meanObs, color = Group)) +
+               geom_boxplot(outlier.shape = NA) +
+               geom_point(position = position_jitterdodge()) +
+               stat_anova_test(label.y.npc = 0.9) +
+               theme_bw()+
+               facet_wrap(~ RelDay)
+             
+             p2 <- p2 + stat_pvalue_manual(plotDf_stat_1) + ggtitle(paste(mainTitle,"split by relative day"))
              
              plotDf <- x@rawdata %>% group_by(Group, Animal, period, Sun) %>%
                summarise(meanObs = mean(Observation, na.rm = TRUE), .groups = "keep") %>%
@@ -307,7 +316,7 @@ setMethod( f="metaboDailyPlot2",
              plotDf_stat_2 <- plotDf %>% filter(!is.na(meanObs)) %>% group_by(Time) %>% tukey_hsd(meanObs ~ Group) %>% add_y_position
              # plotDf_stat_2 <- plotDf %>% filter(!is.na(meanObs)) %>% group_by(Time) %>% dunn_test(meanObs ~ Group) %>% add_y_position
              
-             p4 <- ggplot(plotDf, aes(x = Group, y = meanObs, color = Group)) +
+             p3 <- ggplot(plotDf, aes(x = Group, y = meanObs, color = Group)) +
                geom_boxplot(outlier.shape = NA) +
                geom_point(position = position_jitterdodge()) +
                ggtitle(paste(mainTitle, "values by period")) +
@@ -317,7 +326,7 @@ setMethod( f="metaboDailyPlot2",
                facet_wrap(~ Time) +
                stat_pvalue_manual(plotDf_stat_2)
              
-             return(list(p1, p2, p4))
+             return(list(p1, p2, p3))
            })
 
 
