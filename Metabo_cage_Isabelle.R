@@ -58,7 +58,7 @@ RawMetaFull@data <- do.call("rbind", lapply(RawMetaboData, function(data) data@d
 ## Combine annotation
 if (any(duplicated(RawMetaFull@header$`Animal No.`))){
   RawMetaFull@header <- RawMetaFull@header %>% mutate(Animal_old = `Animal No.`, `Animal No.` = row_number())
-  RawMetaFull@data <- RawMetaFull@data %>% mutate(Animal_old = `Animal No.`, `Animal No.` = as.factor(paste(OriginDate, `Animal No.`)))
+  RawMetaFull@data <- RawMetaFull@data %>% mutate(Animal_old = `Animal No.`, `Animal No.` = forcats::fct_inorder(paste(OriginDate, `Animal No.`)))
   levels(RawMetaFull@data$`Animal No.`) <- seq(1:length(levels(RawMetaFull@data$`Animal No.`)))
 }
 
@@ -97,11 +97,11 @@ metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Anim
 AnalysisFull_filter <- AnalysisFull
 
 # automatic filter 
-mice_rm <- AnalysisFull_filter@data %>% group_by(`Animal No.`, Treat) %>% summarize(Feed = max(Feed), .groups = "drop_last")
+mice_rm <- AnalysisFull_filter@data %>% group_by(`Animal No.`, Treat) %>% summarize(Feed = max(Feed), .groups = "drop_last") %>% ungroup
 print(mice_rm)
-mice_rm <- subset(mice_rm, mice_rm$Feed < (mice_rm %>% filter(Treat == "ct") %>% select(Feed) %>% min))$`Animal No.`
+mice_rm <- subset(mice_rm, mice_rm$Feed < (mice_rm %>% filter(Treat == "ct") %>% select(Feed) %>% min ))$`Animal No.`
 
-mice_rm <- c(mice_rm, 61, 62)
+mice_rm <- c(mice_rm, 45, 46)
 
 # filtered plot
 AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% mice_rm))
