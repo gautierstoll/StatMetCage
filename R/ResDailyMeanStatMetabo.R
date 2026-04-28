@@ -284,7 +284,7 @@ setMethod( f="metaboDailyPlot2",
            signature = "ResDailyMeanStatMetabo",
            definition = function(x,signif=T,pvalStar = T,mainTitle = ""){
              plotDf = x@lmeRes2$data
-             plotDf.tmp <- x@lmeRes2$data %>% group_by(Group, Animal) %>% summarise(meanObs = mean(meanObs), .groups = "drop_last")
+             plotDf.tmp <- x@lmeRes2$data %>% summarise(meanObs = mean(meanObs),.by = c(Group, Animal)) %>% ungroup()
              
              plotDf_stat_0 <- plotDf.tmp %>% tukey_hsd(formula = meanObs ~ Group) %>% add_y_position
              plotDf_stat_1 <- plotDf %>% filter(!is.na(meanObs)) %>% group_by(RelDay) %>% tukey_hsd(meanObs ~ Group) %>% add_y_position
