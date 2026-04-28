@@ -67,10 +67,12 @@ RawMetaFull@data = RawMetaFull@data %>% mutate_at(vars(!contains("Date") & !cont
 RawMetaFull@data <- RawMetaFull@data %>%
   group_by(`Animal No.`) %>%
   mutate(deltaDrink = if("Drink" %in% names(.)){Drink - lag(Drink)}) %>%
-  mutate(deltaFeed = if("Feed" %in% names(.)) {Feed - lag(Feed)})
+  mutate(deltaFeed = if("Feed" %in% names(.)) {Feed - lag(Feed)}) %>%
+  ungroup()
 
 ## extract annotation table from tables
-colnames(RawMetaFull@header) <- c("Box","Animal","Weight","Treat","Text2","Text3", "Date", "Time")
+colnames(RawMetaFull@header) <- c("Box","Animal","Weight","Treat","Text2","Text3", "Date", "Time", 
+if(is.na(last(colnames(RawMetaFull@header)))){"old_mice_number"})
 AnnotFull = RawMetaFull@header
 
 
@@ -95,11 +97,11 @@ metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Anim
 AnalysisFull_filter <- AnalysisFull
 
 # automatic filter 
-mice_rm <- AnalysisFull_filter@data %>% group_by(`Animal No.`, Treat) %>% summarize(Feed = max(Feed)) %>% ungroup
+mice_rm <- AnalysisFull_filter@data %>% group_by(`Animal No.`, Treat) %>% summarize(Feed = max(Feed), .groups = "drop_last")
 print(mice_rm)
 mice_rm <- subset(mice_rm, mice_rm$Feed < (mice_rm %>% filter(Treat == "ct") %>% select(Feed) %>% min))$`Animal No.`
 
-mice_rm <- c(mice_rm, 29, 30)
+mice_rm <- c(mice_rm, 61, 62)
 
 # filtered plot
 AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% mice_rm))
