@@ -409,15 +409,3 @@ setMethod( f="metaboDailyPlot3",
              
              return(p1)
            })
-
-
-
-
-
-
-
-
-
-
-
-

@@ -116,7 +116,7 @@ metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label 
 result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 'directlabels', 'rstatix', 'ggpubr')) %do% {
     print(Field)
     
-    try(tmp1 <- metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",labels = "Animal No.", Time_scale = "RelDay"))
+    try(tmp1 <- metaboRawPlot2(x = AnalysisFull_filter, observation = Field, group = "Treat",labels = "Animal No.", Time_scale = "RelDay"))
     # try(tmp2 <- metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
 
     
