@@ -126,12 +126,11 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
     
     tmp2 <- metaboDailyPlot2(x = tmpResDaily, mainTitle = paste(Field, "Complet"))
   
-    if (Field == "Feed" | Field  == "Drink"){tmp2[[length(tmp2)+1]] <- metaboDailyPlot3(x = tmpResDaily, mainTitle = paste(Field, "Gap by period"))}
+    if ((Field == "Feed") | (Field  == "Drink")){tmp2[[length(tmp2)+1]] <- metaboDailyPlot3(x = tmpResDaily, mainTitle = paste(Field, "Gap by period"))}
     
     # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," night",
     #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
     #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
-    
     # tmp <- tmpResDaily
     # tmp@rawdata <- tmp@rawdata %>% filter(Sun == "night")
     # tmp3 <- metaboDailyPlot2(x = tmp, mainTitle = paste(Field, "night"))
