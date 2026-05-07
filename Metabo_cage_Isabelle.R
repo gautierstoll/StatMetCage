@@ -10,6 +10,9 @@ source("R/RawMetaboData.R") # New RawMetadataFile
 source("R/AnalysisMetaboData.R") # NewAnalysisMetaboData
 source("R/ResDailyMeanStatMetabo.R") # New ResDailyMeanStatMetabo
 
+# Parameters ####
+CTR_group <- "c"
+
 nbcore <- parallel::detectCores()
 
 # load tables #####
@@ -110,7 +113,7 @@ AnalysisFull_filter <- AnalysisFull
 # automatic filter of all mice with final weight under minimal control mouse weight
 mice_rm <- AnalysisFull_filter@data %>% group_by(`Animal No.`, Treat) %>% summarize(Feed = max(Feed), .groups = "drop_last") %>% ungroup
 print(mice_rm)
-mice_rm <- subset(mice_rm, mice_rm$Feed < (mice_rm %>% filter(Treat == "c") %>% select(Feed) %>% min ))$`Animal No.`
+mice_rm <- subset(mice_rm, mice_rm$Feed < (mice_rm %>% filter(Treat == CTR_group) %>% select(Feed) %>% min ))$`Animal No.`
 
 # mice_rm <- c(mice_rm) # Here we can add mice to remove manualy 
 
@@ -132,7 +135,7 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
     # try(tmp2 <- metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
     
     tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
-                      group = "Treat",hourWin = c(19,7),timWind=c(0,0.5),control = "c",
+                      group = "Treat",hourWin = c(19,7),timWind=c(0,0.5),control = CTR_group,
                       cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
     
     tmp2 <- metaboDailyPlot2(x = tmpResDaily, mainTitle = paste(Field, "Complet"))
