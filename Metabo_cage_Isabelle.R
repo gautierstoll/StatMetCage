@@ -12,7 +12,6 @@ source("R/ResDailyMeanStatMetabo.R") # New ResDailyMeanStatMetabo
 
 # Parameters ####
 CTR_group <- "c"
-
 nbcore <- parallel::detectCores()
 
 # load tables #####
