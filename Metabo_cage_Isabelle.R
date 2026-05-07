@@ -5,14 +5,12 @@ library(tcltk) # Graphical interface
 library(tidyverse)
 library(StatMetCage) # Old version
 library(foreach)
-library(doParallel) # parallelized implementation in course
 source("R/RawMetaboData.R") # New RawMetadataFile
 source("R/AnalysisMetaboData.R") # NewAnalysisMetaboData
 source("R/ResDailyMeanStatMetabo.R") # New ResDailyMeanStatMetabo
 
 # Parameters ####
 CTR_group <- "c"
-nbcore <- parallel::detectCores()
 
 # load tables #####
 FileList <- tk_choose.files() # Graphical file selector, doesn't work on macos 
@@ -111,9 +109,7 @@ AnalysisFull_filter <- AnalysisFull
 
 # automatic filter of all mice with final weight under minimal control mouse weight
 mice_rm <- AnalysisFull_filter@data %>% group_by(`Animal No.`, Treat) %>% summarize(Feed = max(Feed), .groups = "drop_last") %>% ungroup
-print(mice_rm)
 mice_rm <- subset(mice_rm, mice_rm$Feed < (mice_rm %>% filter(Treat == CTR_group) %>% select(Feed) %>% min ))$`Animal No.`
-
 # mice_rm <- c(mice_rm) # Here we can add mice to remove manualy 
 
 # filtered plot
@@ -122,12 +118,13 @@ metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label 
 # try(metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
 
 # Multi proc initiation
-cl <- makeCluster(40)
-registerDoParallel(cl)
+# cl <- makeCluster(40)
+# registerDoParallel(cl)
 
 # Run scripts in parallel
 ### Main analysis loop ####
-result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 'directlabels', 'rstatix', 'ggpubr')) %do% {
+# result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 'directlabels', 'rstatix', 'ggpubr', 'StatMetCage')) %dopar% {
+result <- lapply(FieldsOfInterest[-c(1,2)], function(Field) {
     print(Field)
     
     try(tmp1 <- metaboRawPlot2(x = AnalysisFull_filter, observation = Field, group = "Treat",labels = "Animal No.", Time_scale = "RelDay"))
@@ -142,16 +139,13 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
     if ((Field == "Feed") | (Field  == "Drink")){tmp2[[length(tmp2)+1]] <- metaboDailyPlot3(x = tmpResDaily, mainTitle = paste(Field, "Gap by period"))}
     
     return(list(tmp1, tmp2))
-}
+})
 
 # Cleanup of multiproc
-stopCluster(cl)
-registerDoSEQ()  # Reset to sequential mode
+# stopCluster(cl)
+# registerDoSEQ()  # Reset to sequential mode
 
 ## Output pdf writing #####
 pdf(file=paste0(today(), "_", "ResFull_all_split","_filter",".pdf"), width = 12, height = 12)
-  for (res in result){
-    print(res)
-  }
-# print(result)
+print(result)
 dev.off()
