@@ -1,17 +1,20 @@
+# Main script R for StatMetCage
+# Libraries #####
 setwd("~/Git/StatMetCage")
-library(tcltk)
+library(tcltk) # Graphical interface
 library(tidyverse)
-library(StatMetCage)
+library(StatMetCage) # Old version
 library(foreach)
-library(doParallel)
-source("R/RawMetaboData.R")
-source("R/AnalysisMetaboData.R")
-source("R/ResDailyMeanStatMetabo.R")
+library(doParallel) # parallelized implementation in course
+source("R/RawMetaboData.R") # New RawMetadataFile
+source("R/AnalysisMetaboData.R") # NewAnalysisMetaboData
+source("R/ResDailyMeanStatMetabo.R") # New ResDailyMeanStatMetabo
 
 nbcore <- parallel::detectCores()
 
 # load tables #####
-FileList <- tk_choose.files()
+FileList <- tk_choose.files() # Graphical file selector, doesn't work on macos 
+
 # FileList <- c(
 #   "~/Desktop/Last_NoNF/03112025.csv",
 #   "~/Desktop/Last_NoNF/01112025.csv",
@@ -19,6 +22,7 @@ FileList <- tk_choose.files()
 #   "~/Desktop/Last_NoNF/30102025.csv"
 # )
 
+# Injection time we need to integrate it, and to formalized the input format
 # inj_time <- list(dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:46"),
 #                  dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),
 #                  dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:50"),
@@ -39,23 +43,27 @@ FileList <- tk_choose.files()
 # 
 # names(inj_time) <- as.character(seq(1,length(inj_time)))
 
+# Output folder creation #####
 Folder <- paste0(str_split(FileList[1], "/")[[1]][1:length(str_split(FileList[1], "/")[[1]])-1],collapse = "/")
 Folder_res <- paste0(Folder,"/Results_", format(now(), format = c("%Y-%m-%d_%H:%M:%S")))
 dir.create(Folder_res)
 setwd(Folder_res)
 
+# Main code ####
+## Files reading #####
 RawMetaboData <- sapply(FileList, function(File){
   tmp <- new("RawMetaboData",fileName = File,sepCSV = ";")
   tmp@data <- tmp@data[which(tmp@data$RER != "-"),]
   return(tmp)
 })
 
-# Combine tables #####
-# RawMetaFull <- new("RawMetaboData") #Empty file generation on RawMetaboData format
-RawMetaFull <- new("RawMetaboData")
+## Differents files merging #####
+### Combine tables #####
+RawMetaFull <- new("RawMetaboData") #Empty file generation on RawMetaboData format
 RawMetaFull@header <- do.call("rbind", lapply(RawMetaboData, function(data) data@header))
 RawMetaFull@data <- do.call("rbind", lapply(RawMetaboData, function(data) data@data))
-## Combine annotation
+
+### Combine annotation #####
 if (any(duplicated(RawMetaFull@header$`Animal No.`))){
   RawMetaFull@header <- RawMetaFull@header %>% mutate(Animal_old = `Animal No.`, `Animal No.` = row_number())
   RawMetaFull@data <- RawMetaFull@data %>% mutate(Animal_old = `Animal No.`, `Animal No.` = forcats::fct_inorder(paste(OriginDate, `Animal No.`)))
@@ -89,65 +97,59 @@ AnalysisFull@data <- AnalysisFull@data %>% mutate(UTC = dmy_hm(paste(Date, Time)
 # if(!is.null(inj_time)) {AnalysisFull@data <- AnalysisFull@data %>% mutate(UTC_rel = difftime(UTC, inj_time[`Animal No.`][[1]])/dminutes(x=5))}
 
 time <- data.frame(AnalysisFull@data$MyTime, AnalysisFull@data$RelDay)
+
+## Analysis part ####
 print("Full Analysis")
 
-# metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel")
+# First Feed plot 
 metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "RelDay")
 # try(metaboRawPlot2(AnalysisFull, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
+
 AnalysisFull_filter <- AnalysisFull
 
-# automatic filter 
+# automatic filter of all mice with final weight under minimal control mouse weight
 mice_rm <- AnalysisFull_filter@data %>% group_by(`Animal No.`, Treat) %>% summarize(Feed = max(Feed), .groups = "drop_last") %>% ungroup
 print(mice_rm)
-mice_rm <- subset(mice_rm, mice_rm$Feed < (mice_rm %>% filter(Treat == "ct") %>% select(Feed) %>% min ))$`Animal No.`
+mice_rm <- subset(mice_rm, mice_rm$Feed < (mice_rm %>% filter(Treat == "c") %>% select(Feed) %>% min ))$`Animal No.`
 
-mice_rm <- c(mice_rm, 45, 46)
+# mice_rm <- c(mice_rm) # Here we can add mice to remove manualy 
 
 # filtered plot
 AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% mice_rm))
 metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "RelDay")
 # try(metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
 
-
-# cl <- makeCluster(24)
-# registerDoParallel(cl)
+# Multi proc initiation
+cl <- makeCluster(40)
+registerDoParallel(cl)
 
 # Run scripts in parallel
+### Main analysis loop ####
 result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 'directlabels', 'rstatix', 'ggpubr')) %do% {
     print(Field)
     
     try(tmp1 <- metaboRawPlot2(x = AnalysisFull_filter, observation = Field, group = "Treat",labels = "Animal No.", Time_scale = "RelDay"))
     # try(tmp2 <- metaboRawPlot2(AnalysisFull_filter, observation = Field, group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
-
     
     tmpResDaily = new("ResDailyMeanStatMetabo",anMetData = AnalysisFull_filter,observation = Field,
-                      group = "Treat",hourWin = c(19,7),timWind=c(0,0.5),control = "ct",
+                      group = "Treat",hourWin = c(19,7),timWind=c(0,0.5),control = "c",
                       cumul = ifelse((Field == "Feed") | (Field == "Drink"), TRUE,FALSE))
     
     tmp2 <- metaboDailyPlot2(x = tmpResDaily, mainTitle = paste(Field, "Complet"))
   
     if ((Field == "Feed") | (Field  == "Drink")){tmp2[[length(tmp2)+1]] <- metaboDailyPlot3(x = tmpResDaily, mainTitle = paste(Field, "Gap by period"))}
     
-    # metaboDailyPlot(tmpResDaily,mainTitle = paste(Field," night",
-    #                                               "\npval_d=",format(summary(tmpResDaily@lmeRes)$tTable[2,5],digit=2),
-    #                                               ", pval_r=",format(summary(tmpResDaily@lmeRes)$tTable[3,5],digit=2)))
-    # tmp <- tmpResDaily
-    # tmp@rawdata <- tmp@rawdata %>% filter(Sun == "night")
-    # tmp3 <- metaboDailyPlot2(x = tmp, mainTitle = paste(Field, "night"))
-    # 
-    # 
-    # tmp <- tmpResDaily
-    # tmp@rawdata <- tmp@rawdata %>% filter(Sun == "day")
-    # tmp4 <- metaboDailyPlot2(x = tmp, mainTitle = paste(Field, "day"))
-    
     return(list(tmp1, tmp2))
 }
 
-# Cleanup
-# stopCluster(cl)
-# registerDoSEQ()  # Reset to sequential mode
+# Cleanup of multiproc
+stopCluster(cl)
+registerDoSEQ()  # Reset to sequential mode
 
-
+## Output pdf writing #####
 pdf(file=paste0(today(), "_", "ResFull_all_split","_filter",".pdf"), width = 12, height = 12)
-print(result)
+  for (res in result){
+    print(res)
+  }
+# print(result)
 dev.off()
