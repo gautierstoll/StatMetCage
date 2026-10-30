@@ -1,4 +1,4 @@
-setwd("~/Documents/Git/StatMetCage")
+setwd("~/Git/StatMetCage")
 library(tcltk)
 library(tidyverse)
 library(StatMetCage)
