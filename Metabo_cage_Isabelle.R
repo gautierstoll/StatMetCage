@@ -10,7 +10,7 @@ source("R/ResDailyMeanStatMetabo.R")
 library(MKmisc)
 
 nbcore <- parallel::detectCores()
-manual_remove <- c(29, 30)
+# manual_remove <- c(29, 30)
 
 # load tables #####
 FileList <- tk_choose.files()
@@ -101,7 +101,7 @@ AnalysisFull_filter <- AnalysisFull
 mice_rm <- AnalysisFull_filter@data %>% group_by(`Animal No.`, Treat) %>% summarize(Feed = max(Feed))
 mice_rm <- subset(mice_rm, mice_rm$Feed < min((mice_rm %>% filter(Treat == "ct"))$Feed))$`Animal No.`
 
-# if(exists("manual_remove") && length(manual_remove) !=0){mice_rm <- c(mice_rm, manual_remove)}
+if(exists("manual_remove") && length(manual_remove) !=0){mice_rm <- c(mice_rm, manual_remove)}
 
 # filtered plot
 AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% mice_rm))
