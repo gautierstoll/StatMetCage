@@ -134,6 +134,10 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
   
   print(AUC_summary)
   
+  test <- AnalysisFull_filter@data
+  names(test)[1] <- "Animal"
+  nlme::lme(as.formula(paste0(Field, " ~ Treat * RelDay * Animal")), random = ~ RelDay | Animal, data = test)
+  
   AUC_test <- statmod::compareGrowthCurves(as.factor((AnalysisFull_filter@data %>% aggregate(as.formula("Treat ~ `Animal No.`"), unique))$"Treat"), as.matrix(AUC_summary[,-1]), nsim = 100)
   # print(AUC_test)
   # AUC_value <- gridExtra::grid.table(AUC_test)
