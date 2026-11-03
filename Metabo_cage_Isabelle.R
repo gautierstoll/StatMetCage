@@ -127,7 +127,13 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
   
   
   AUC_summary <- AnalysisFull_filter@data %>%
-    pivot_wider(id_cols =  "Animal No.", values_from = Field, names_from = "RelDay")
+    group_by(`Animal No.`, Treat) %>%
+    summarize(AUC = DescTools::AUC(RelDay, get(Field))) %>%
+    ungroup() %>%
+    rstatix::dunn_test(AUC ~ Treat, p.adjust.method = "fdr")
+  
+  print(AUC_summary)
+  
   AUC_test <- statmod::compareGrowthCurves(as.factor((AnalysisFull_filter@data %>% aggregate(as.formula("Treat ~ `Animal No.`"), unique))$"Treat"), as.matrix(AUC_summary[,-1]), nsim = 100)
   # print(AUC_test)
   # AUC_value <- gridExtra::grid.table(AUC_test)
