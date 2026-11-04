@@ -128,7 +128,7 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
   
   AUC_summary <- AnalysisFull_filter@data %>%
     group_by(`Animal No.`, Treat) %>%
-    summarize(AUC = DescTools::AUC(RelDay, get(Field))) %>%
+    summarize(AUC = DescTools::AUC(RelDay, get(Field), na.rm = TRUE)) %>%
     ungroup() %>%
     rstatix::dunn_test(AUC ~ Treat, p.adjust.method = "fdr")
   
@@ -136,7 +136,15 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
   
   test <- AnalysisFull_filter@data
   names(test)[1] <- "Animal"
-  nlme::lme(as.formula(paste0(Field, " ~ Treat * RelDay * Animal")), random = ~ RelDay | Animal, data = test)
+  lme_summary <- nlme::nlme(model = as.formula(paste0(Field, " ~ RelDay * Animal")),
+                            random = RelDay ~ 1 | Animal,
+                            fixed = RelDay ~ 1 ,
+                            start = 0,
+                            data = test,
+                            na.action = na.omit)
+  lme_summary2 <- stats::update(lme_summary, fixed = RelDay + Animal  ~ Treat)
+  anova(lme_summary, lme_summary2)
+  summary(lme_summary)
   
   AUC_test <- statmod::compareGrowthCurves(as.factor((AnalysisFull_filter@data %>% aggregate(as.formula("Treat ~ `Animal No.`"), unique))$"Treat"), as.matrix(AUC_summary[,-1]), nsim = 100)
   # print(AUC_test)
