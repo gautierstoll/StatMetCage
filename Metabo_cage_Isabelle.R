@@ -8,6 +8,7 @@ source("R/RawMetaboData.R")
 source("R/AnalysisMetaboData.R")
 source("R/ResDailyMeanStatMetabo.R")
 library(MKmisc)
+library(nlme)
 
 nbcore <- parallel::detectCores()
 # manual_remove <- c(29, 30)
@@ -136,13 +137,17 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
   
   test <- AnalysisFull_filter@data
   names(test)[1] <- "Animal"
-  lme_summary <- nlme::nlme(model = as.formula(paste0(Field, " ~ RelDay * Animal")),
-                            random = RelDay ~ 1 | Animal,
-                            fixed = RelDay ~ 1 ,
-                            start = 0,
-                            data = test,
-                            na.action = na.omit)
-  lme_summary2 <- stats::update(lme_summary, fixed = RelDay + Animal  ~ Treat)
+  test %>% mutate_at(c("Animal"), factor)
+
+  mod1 <- lm(Feed ~ RelDay * Animal, data = test, subset = Treat == "ct")
+  mod2 <- lm(Feed ~ RelDay * Animal, data = test, subset = Treat == "dia")
+  mod3 <- lm(Feed ~ RelDay * Animal, data = test, subset = Treat == "r07")
+  
+  test %>% 
+    modelr::gather_residuals(Control = mod1, dia = mod2, r07 = mod3) %>% 
+    ggplot(aes(RelDay, resid, colour = model)) +
+    geom_line(alpha = 0.50)
+  
   anova(lme_summary, lme_summary2)
   summary(lme_summary)
   
