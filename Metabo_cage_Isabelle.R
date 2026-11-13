@@ -133,33 +133,47 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
     ungroup() %>%
     rstatix::dunn_test(AUC ~ Treat, p.adjust.method = "fdr")
   
+  sink("AUC_results.txt", append = TRUE )
+  print(Field)
   print(AUC_summary)
+  sink()
   
-  test <- AnalysisFull_filter@data
-  names(test)[1] <- "Animal"
-  test %>% mutate_at(c("Animal"), factor)
+  # test <- AnalysisFull_filter@data
+  # names(test)[1] <- "Animal"
+  # test %>% mutate_at(c("Animal"), factor)
 
-  mod1 <- lm(Feed ~ RelDay * Animal, data = test, subset = Treat == "ct")
-  mod2 <- lm(Feed ~ RelDay * Animal, data = test, subset = Treat == "dia")
-  mod3 <- lm(Feed ~ RelDay * Animal, data = test, subset = Treat == "r07")
+  # mod1 <- lm(Feed ~ RelDay * Animal, data = test, subset = Treat == "ct")
+  # mod2 <- lm(Feed ~ RelDay * Animal, data = test, subset = Treat == "dia")
+  # mod3 <- lm(Feed ~ RelDay * Animal, data = test, subset = Treat == "r07")
+  # 
+  # test %>% 
+  #   modelr::gather_residuals(Control = mod1, dia = mod2, r07 = mod3) %>% 
+  #   ggplot(aes(RelDay, resid, colour = model)) +
+  #   geom_line(alpha = 0.50)
+  # 
+  # anova(lme_summary, lme_summary2)
+  # summary(lme_summary)
   
-  test %>% 
-    modelr::gather_residuals(Control = mod1, dia = mod2, r07 = mod3) %>% 
-    ggplot(aes(RelDay, resid, colour = model)) +
-    geom_line(alpha = 0.50)
+  test <- AnalysisFull_filter@data %>% select("Animal","RelDay",Field) %>%
+    pivot_wider(names_from = RelDay, values_from = Field)
   
-  anova(lme_summary, lme_summary2)
-  summary(lme_summary)
+  AUC_test <- statmod::compareGrowthCurves(as.factor((AnalysisFull_filter@data %>% aggregate(as.formula("Treat ~ `Animal No.`"), unique))$"Treat"),
+                                           test[,-c(1,2)], nsim = 100)
+ 
   
-  AUC_test <- statmod::compareGrowthCurves(as.factor((AnalysisFull_filter@data %>% aggregate(as.formula("Treat ~ `Animal No.`"), unique))$"Treat"), as.matrix(AUC_summary[,-1]), nsim = 100)
-  # print(AUC_test)
+  sink("GrowthCurveCompare.txt", append = TRUE)
+  print(Field)
+  print(AUC_test)
+  sink()
+  
+   # print(AUC_test)
   # AUC_value <- gridExtra::grid.table(AUC_test)
   AUC_value <- insight::export_table(AUC_test)
   
   tmp2 <- metaboDailyPlot2(x = tmpResDaily, mainTitle = paste(Field, "Complet"))
   
-  tmp3_test <- tmpResDaily@lmeRes3$data %>% summarize(meanObs = mean(meanObs), .by = c(Group,Animal)) %>% filter(!is.na(meanObs)) %>% tukey_hsd(meanObs ~ Group) %>% add_y_position
-  tmp3 <- ggplot(tmpResDaily@lmeRes3$data %>% summarize(meanObs = mean(meanObs), .by = c(Group,Animal)), aes(x = Group, y = meanObs, color = Group))+
+  tmp3_test <- tmpResDaily@lmeRes2$data %>% summarize(meanObs = mean(meanObs), .by = c(Group,Animal)) %>% filter(!is.na(meanObs)) %>% tukey_hsd(meanObs ~ Group) %>% add_y_position
+  tmp3 <- ggplot(tmpResDaily@lmeRes2$data %>% summarize(meanObs = mean(meanObs), .by = c(Group,Animal)), aes(x = Group, y = meanObs, color = Group))+
     geom_boxplot(outliers = FALSE)+
     geom_point(position = position_jitterdodge())+
     # facet_wrap(~ RelDay) +
@@ -182,7 +196,7 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
   # tmp@rawdata <- tmp@rawdata %>% filter(Sun == "day")
   # tmp4 <- metaboDailyPlot2(x = tmp, mainTitle = paste(Field, "day"))
   
-  return(list(tmp1, AUC_value, tmp2, tmp3))
+  return(list(tmp1, tmp2, tmp3))
 }
 
 # Cleanup
