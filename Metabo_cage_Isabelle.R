@@ -21,7 +21,7 @@ FileList <- tk_choose.files()
 #   "~/Desktop/Last_NoNF/26102025.csv",
 #   "~/Desktop/Last_NoNF/30102025.csv"
 # )
-
+# Injections ####
 # inj_time <- list(dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:46"),
 #                  dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),
 #                  dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:55"),dmy_hm("31-10-2025 17:50"),
@@ -41,7 +41,7 @@ FileList <- tk_choose.files()
 #                  dmy_hm("25-10-2025 18:07"),dmy_hm("25-10-2025 18:07"),dmy_hm("25-10-2025 18:07"),dmy_hm("25-10-2025 18:06"))
 # 
 # names(inj_time) <- as.character(seq(1,length(inj_time)))
-
+#####
 Folder <- paste0(str_split(FileList[1], "/")[[1]][1:length(str_split(FileList[1], "/")[[1]])-1],collapse = "/")
 Folder_res <- paste0(Folder,"/Results_", format(now(), format = c("%Y-%m-%d_%H:%M:%S")))
 dir.create(Folder_res)
@@ -158,7 +158,7 @@ result <- foreach(Field = FieldsOfInterest[-c(1,2)], .packages = c('tidyverse', 
     pivot_wider(names_from = RelDay, values_from = Field)
   
   AUC_test <- statmod::compareGrowthCurves(as.factor((AnalysisFull_filter@data %>% aggregate(as.formula("Treat ~ `Animal No.`"), unique))$"Treat"),
-                                           test[,-c(1,2)], nsim = 100)
+                                           test[,-c(1,2)], nsim = 50)
  
   
   sink("GrowthCurveCompare.txt", append = TRUE)
