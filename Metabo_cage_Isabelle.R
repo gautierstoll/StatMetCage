@@ -104,8 +104,14 @@ mice_rm <- subset(mice_rm, mice_rm$Feed < min((mice_rm %>% filter(Treat == "ct")
 
 if(exists("manual_remove") && length(manual_remove) !=0){mice_rm <- c(mice_rm, manual_remove)}
 
+time_lim <- AnalysisFull@data %>%
+  ungroup() %>%
+  select(`Animal No.`, RelDay) %>%
+  summarise(time = max(RelDay, na.rm = TRUE), .by = `Animal No.`) %>% select(time) %>% min()
+
 # filtered plot
-AnalysisFull_filter@data  <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% mice_rm))
+AnalysisFull_filter@data <- AnalysisFull_filter@data %>% filter(RelDay <= time_lim)
+AnalysisFull_filter@data <- subset(AnalysisFull_filter@data, subset = !(`Animal No.` %in% mice_rm))
 metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "RelDay")
 # try(metaboRawPlot2(AnalysisFull_filter, observation = "Feed", group = "Treat",label = "Animal No.", Time_scale = "UTC_rel"))
 
