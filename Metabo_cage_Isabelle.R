@@ -14,13 +14,13 @@ nbcore <- parallel::detectCores()
 # manual_remove <- c(29, 30)
 
 # load tables #####
-FileList <- tk_choose.files()
-# FileList <- c(
-#   "~/Desktop/Last_NoNF/03112025.csv",
-#   "~/Desktop/Last_NoNF/01112025.csv",
-#   "~/Desktop/Last_NoNF/26102025.csv",
-#   "~/Desktop/Last_NoNF/30102025.csv"
-# )
+# FileList <- tk_choose.files()
+FileList <- c(
+  "~/Desktop/2025_Stéphanie Moriceau/Last_NoNF/03112025.csv",
+  "~/Desktop/2025_Stéphanie Moriceau/Last_NoNF/01112025.csv",
+  "~/Desktop/2025_Stéphanie Moriceau/Last_NoNF/26102025.csv",
+  "~/Desktop/2025_Stéphanie Moriceau/Last_NoNF/30102025.csv"
+)
 # Injections ####
 # inj_time <- list(dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:46"),
 #                  dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),dmy_hm("27-10-2025 17:47"),
