@@ -16,10 +16,16 @@ nbcore <- parallel::detectCores()
 # load tables #####
 # FileList <- tk_choose.files()
 FileList <- c(
-  "~/Desktop/2025_Stéphanie Moriceau/Last_NoNF/03112025.csv",
-  "~/Desktop/2025_Stéphanie Moriceau/Last_NoNF/01112025.csv",
-  "~/Desktop/2025_Stéphanie Moriceau/Last_NoNF/26102025.csv",
-  "~/Desktop/2025_Stéphanie Moriceau/Last_NoNF/30102025.csv"
+  "~/Desktop/test/Round123/26082026.csv",
+  "~/Desktop/test/Round123/07042026.csv",
+  "~/Desktop/test/Round123/20042026.csv",
+  "~/Desktop/test/Round123/19032026.csv",
+  "~/Desktop/test/Round123/19082026.csv",
+  "~/Desktop/test/Round123/06052025.csv",
+  "~/Desktop/test/Round123/22042025.csv",
+  "~/Desktop/test/Round123/13052025.csv",
+  "~/Desktop/test/Round123/29042025.csv",
+  "~/Desktop/test/Round123/11032026.csv"
 )
 # Injections ####
 # inj_time <- list(dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:40"),dmy_hm("27-10-2025 17:46"),
